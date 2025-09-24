@@ -4,30 +4,68 @@
  */
 
 import { Platform } from 'react-native';
+import type { BrandPalette, ThemeColors, FontPalette } from '@/types/theme';
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+// Brand Colors - Trend Ankara
+export const BrandColors: BrandPalette = {
+  primary: '#DC2626',    // Vibrant red for actions
+  secondary: '#000000',  // Pure black
+  tertiary: '#FFFFFF',   // Pure white
 
-export const Colors = {
+  // Gray palette
+  gray900: '#111827',
+  gray800: '#1F2937',
+  gray700: '#374151',
+  gray600: '#4B5563',
+  gray500: '#6B7280',
+  gray400: '#9CA3AF',
+  gray300: '#D1D5DB',
+  gray200: '#E5E7EB',
+  gray100: '#F3F4F6',
+  gray50: '#F9FAFB',
+
+  // Semantic colors
+  error: '#DC2626',     // Using primary red for errors
+  warning: '#F59E0B',
+  success: '#10B981',
+  info: '#3B82F6',      // Only blue allowed for info badges in news
+};
+
+const tintColorLight = BrandColors.primary;
+const tintColorDark = BrandColors.tertiary;
+
+export const Colors: ThemeColors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
+    text: BrandColors.gray900,
+    background: BrandColors.tertiary,
     tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
+    icon: BrandColors.gray600,
+    tabIconDefault: BrandColors.gray600,
     tabIconSelected: tintColorLight,
+    border: BrandColors.gray200,
+    card: BrandColors.tertiary,
+    notification: BrandColors.primary,
+    link: BrandColors.primary,
+    placeholder: BrandColors.gray400,
+    surface: BrandColors.gray50,
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
+    text: BrandColors.tertiary,
+    background: BrandColors.secondary,
     tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
+    icon: BrandColors.gray400,
+    tabIconDefault: BrandColors.gray400,
     tabIconSelected: tintColorDark,
+    border: BrandColors.gray700,
+    card: BrandColors.gray800,
+    notification: BrandColors.primary,
+    link: BrandColors.primary,
+    placeholder: BrandColors.gray500,
+    surface: BrandColors.gray900,
   },
 };
 
-export const Fonts = Platform.select({
+export const Fonts = Platform.select<FontPalette>({
   ios: {
     /** iOS `UIFontDescriptorSystemDesignDefault` */
     sans: 'system-ui',

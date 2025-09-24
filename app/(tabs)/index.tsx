@@ -1,98 +1,195 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
+import React from 'react';
+import { StyleSheet, TouchableOpacity, ActivityIndicator, View } from 'react-native';
 import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { ThemedText } from '@/components/themed-text';
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { Strings } from '@/constants/strings';
+import { useAudioWithNativeControls } from '@/hooks/useAudioWithNativeControls';
+import { AnimatedLogoContainer } from '@/components/player/AnimatedLogoContainer';
+import { AnimationErrorBoundary } from '@/components/player/AnimationErrorBoundary';
 
-export default function HomeScreen() {
+export default function RadioScreen() {
+  const { play, pause, stop, isPlaying, state, error } = useAudioWithNativeControls();
+
+  const handlePlayPause = () => {
+    if (isPlaying) {
+      pause();
+    } else {
+      play();
+    }
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+    <ThemedView style={styles.container}>
+      <AnimationErrorBoundary>
+        <AnimatedLogoContainer
+          isPlaying={isPlaying}
+          style={styles.logoContainer}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+      </AnimationErrorBoundary>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      <View style={styles.playerContainer}>
+        <TouchableOpacity
+          onPress={handlePlayPause}
+          style={styles.playButton}
+          disabled={state === 'loading'}
+        >
+          {state === 'loading' ? (
+            <ActivityIndicator size="large" color="#DC2626" />
+          ) : (
+            <IconSymbol
+              name={isPlaying ? 'pause.circle.fill' : 'play.circle.fill'}
+              size={80}
+              color="#DC2626"
+            />
+          )}
+        </TouchableOpacity>
+
+        {state === 'buffering' && (
+          <View style={styles.statusContainer}>
+            <ActivityIndicator size="small" color="#DC2626" />
+            <ThemedText style={styles.statusText}>Yükleniyor...</ThemedText>
+          </View>
+        )}
+
+        {state === 'error' && error && (
+          <View style={styles.errorContainer}>
+            <ThemedText style={styles.errorText}>{error}</ThemedText>
+          </View>
+        )}
+
+        {isPlaying && (
+          <ThemedText style={styles.statusText}>Şu anda çalıyor</ThemedText>
+        )}
+
+        {false && (
+          <View style={styles.backgroundModeContainer}>
+            <IconSymbol
+              name="circle.fill"
+              size={8}
+              color="#10B981"
+              style={styles.backgroundModeIcon}
+            />
+            <ThemedText style={styles.backgroundModeText}>
+              {Strings.player.backgroundMode}
+            </ThemedText>
+          </View>
+        )}
+
+        {false && (
+          <View style={styles.audioFocusContainer}>
+            <IconSymbol
+              name="exclamationmark.triangle.fill"
+              size={16}
+              color="#F59E0B"
+              style={styles.audioFocusIcon}
+            />
+            <ThemedText style={styles.audioFocusText}>
+              {Strings.player.audioFocusLost}
+            </ThemedText>
+          </View>
+        )}
+      </View>
+
+      <TouchableOpacity
+        onPress={stop}
+        style={styles.stopButton}
+        disabled={state === 'idle' || state === 'stopped'}
+      >
+        <ThemedText style={styles.stopButtonText}>Durdur</ThemedText>
+      </TouchableOpacity>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  logoContainer: {
+    marginBottom: 20,
+  },
+  playerContainer: {
+    alignItems: 'center',
+    marginVertical: 40,
+  },
+  playButton: {
+    marginVertical: 20,
+  },
+  statusContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    marginTop: 20,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  statusText: {
+    fontSize: 16,
+    marginLeft: 10,
+    color: '#666',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  errorContainer: {
+    marginTop: 20,
+    padding: 15,
+    backgroundColor: 'rgba(220, 38, 38, 0.1)',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#DC2626',
+  },
+  errorText: {
+    color: '#DC2626',
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  stopButton: {
+    paddingHorizontal: 30,
+    paddingVertical: 12,
+    backgroundColor: '#DC2626',
+    borderRadius: 8,
+    marginTop: 20,
+  },
+  stopButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  backgroundModeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#10B981',
+  },
+  backgroundModeIcon: {
+    marginRight: 6,
+  },
+  backgroundModeText: {
+    fontSize: 12,
+    color: '#10B981',
+    fontWeight: '500',
+  },
+  audioFocusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#F59E0B',
+  },
+  audioFocusIcon: {
+    marginRight: 6,
+  },
+  audioFocusText: {
+    fontSize: 12,
+    color: '#F59E0B',
+    fontWeight: '500',
   },
 });
