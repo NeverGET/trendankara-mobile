@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trend Ankara - Icon Preview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #1e1e1e 0%, #2d2d2d 100%);
+            color: #ffffff;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 1rem;
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #e53e3e, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #999;
+            margin-bottom: 3rem;
+            font-size: 1.1rem;
+        }
+
+        .platform-section {
+            margin-bottom: 3rem;
+        }
+
+        .platform-title {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e53e3e;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .icon-card {
+            background: #333;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid #444;
+        }
+
+        .icon-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(229, 62, 62, 0.3);
+            border-color: #e53e3e;
+        }
+
+        .icon-preview {
+            width: 128px;
+            height: 128px;
+            margin: 0 auto 1rem;
+            background: #fff;
+            border-radius: 22%;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .icon-preview.dark {
+            background: #000;
+        }
+
+        .icon-preview.tinted {
+            background: linear-gradient(135deg, #4a4a4a, #2a2a2a);
+        }
+
+        .icon-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 18%;
+        }
+
+        .icon-label {
+            font-size: 0.9rem;
+            color: #ccc;
+            margin-bottom: 0.5rem;
+        }
+
+        .icon-size {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .icon-path {
+            font-size: 0.7rem;
+            color: #666;
+            margin-top: 0.5rem;
+            word-break: break-all;
+            font-family: monospace;
+        }
+
+        .size-variations {
+            margin-top: 2rem;
+        }
+
+        .size-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            background: #2a2a2a;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .size-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .size-preview {
+            background: #fff;
+            padding: 2px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .meta-info {
+            background: #2a2a2a;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .meta-info h3 {
+            color: #e53e3e;
+            margin-bottom: 1rem;
+        }
+
+        .meta-info p {
+            margin: 0.5rem 0;
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+
+        .meta-info code {
+            background: #1a1a1a;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #e53e3e;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .status-badge.success {
+            background: #22c55e;
+            color: #000;
+        }
+
+        .status-badge.warning {
+            background: #f59e0b;
+            color: #000;
+        }
+
+        @media (max-width: 768px) {
+            .icon-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 1rem;
+            }
+
+            .icon-preview {
+                width: 96px;
+                height: 96px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Trend Ankara Icon Preview</h1>
+        <p class="subtitle">Adaptive App Icons for iOS 18 & Android 13+</p>
+
+        <!-- iOS Icons -->
+        <section class="platform-section">
+            <h2 class="platform-title">
+                🍎 iOS Icons
+                <span class="status-badge success">Ready</span>
+            </h2>
+            <div class="icon-grid">
+                <div class="icon-card">
+                    <div class="icon-preview">
+                        <img src="ios/icon-light.png" alt="iOS Light Mode">
+                    </div>
+                    <div class="icon-label">Light Mode</div>
+                    <div class="icon-size">1024×1024</div>
+                    <div class="icon-path">ios/icon-light.png</div>
+                </div>
+
+                <div class="icon-card">
+                    <div class="icon-preview dark">
+                        <img src="ios/icon-dark.png" alt="iOS Dark Mode">
+                    </div>
+                    <div class="icon-label">Dark Mode</div>
+                    <div class="icon-size">1024×1024</div>
+                    <div class="icon-path">ios/icon-dark.png</div>
+                </div>
+
+                <div class="icon-card">
+                    <div class="icon-preview tinted">
+                        <img src="ios/icon-tinted.png" alt="iOS Tinted Mode">
+                    </div>
+                    <div class="icon-label">Tinted Mode</div>
+                    <div class="icon-size">1024×1024</div>
+                    <div class="icon-path">ios/icon-tinted.png</div>
+                </div>
+
+                <div class="icon-card">
+                    <div class="icon-preview">
+                        <img src="ios/icon.png" alt="iOS Legacy">
+                    </div>
+                    <div class="icon-label">Legacy (iOS < 18)</div>
+                    <div class="icon-size">1024×1024</div>
+                    <div class="icon-path">ios/icon.png</div>
+                </div>
+            </div>
+
+            <!-- Size Variations -->
+            <div class="size-variations">
+                <h3>Size Variations</h3>
+                <div class="size-grid">
+                    <div class="size-item">
+                        <div class="size-preview" style="width: 20px; height: 20px;">
+                            <img src="ios/icon-20.png" alt="20px" style="width: 20px; height: 20px;">
+                        </div>
+                        <span class="icon-size">20×20</span>
+                    </div>
+                    <div class="size-item">
+                        <div class="size-preview" style="width: 29px; height: 29px;">
+                            <img src="ios/icon-29.png" alt="29px" style="width: 29px; height: 29px;">
+                        </div>
+                        <span class="icon-size">29×29</span>
+                    </div>
+                    <div class="size-item">
+                        <div class="size-preview" style="width: 40px; height: 40px;">
+                            <img src="ios/icon-40.png" alt="40px" style="width: 40px; height: 40px;">
+                        </div>
+                        <span class="icon-size">40×40</span>
+                    </div>
+                    <div class="size-item">
+                        <div class="size-preview" style="width: 58px; height: 58px;">
+                            <img src="ios/icon-58.png" alt="58px" style="width: 58px; height: 58px;">
+                        </div>
+                        <span class="icon-size">58×58</span>
+                    </div>
+                    <div class="size-item">
+                        <div class="size-preview" style="width: 60px; height: 60px;">
+                            <img src="ios/icon-60.png" alt="60px" style="width: 60px; height: 60px;">
+                        </div>
+                        <span class="icon-size">60×60</span>
+                    </div>
+                    <div class="size-item">
+                        <div class="size-preview" style="width: 76px; height: 76px;">
+                            <img src="ios/icon-76.png" alt="76px" style="width: 76px; height: 76px;">
+                        </div>
+                        <span class="icon-size">76×76</span>
+                    </div>
+                    <div class="size-item">
+                        <div class="size-preview" style="width: 80px; height: 80px;">
+                            <img src="ios/icon-80.png" alt="80px" style="width: 80px; height: 80px;">
+                        </div>
+                        <span class="icon-size">80×80</span>
+                    </div>
+                    <div class="size-item">
+                        <div class="size-preview" style="width: 87px; height: 87px;">
+                            <img src="ios/icon-87.png" alt="87px" style="width: 87px; height: 87px;">
+                        </div>
+                        <span class="icon-size">87×87</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Android Icons -->
+        <section class="platform-section">
+            <h2 class="platform-title">
+                🤖 Android Icons
+                <span class="status-badge success">Ready</span>
+            </h2>
+            <div class="icon-grid">
+                <div class="icon-card">
+                    <div class="icon-preview">
+                        <img src="android/adaptive/foreground.png" alt="Android Foreground">
+                    </div>
+                    <div class="icon-label">Adaptive Foreground</div>
+                    <div class="icon-size">108×108dp</div>
+                    <div class="icon-path">android/adaptive/foreground.png</div>
+                </div>
+
+                <div class="icon-card">
+                    <div class="icon-preview dark">
+                        <img src="android/adaptive/background.png" alt="Android Background">
+                    </div>
+                    <div class="icon-label">Adaptive Background</div>
+                    <div class="icon-size">108×108dp</div>
+                    <div class="icon-path">android/adaptive/background.png</div>
+                </div>
+
+                <div class="icon-card">
+                    <div class="icon-preview">
+                        <img src="android/adaptive/monochrome.png" alt="Android Monochrome">
+                    </div>
+                    <div class="icon-label">Monochrome (Material You)</div>
+                    <div class="icon-size">108×108dp</div>
+                    <div class="icon-path">android/adaptive/monochrome.png</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Web Icons -->
+        <section class="platform-section">
+            <h2 class="platform-title">
+                🌐 Web Favicons
+                <span class="status-badge success">Ready</span>
+            </h2>
+            <div class="icon-grid">
+                <div class="icon-card">
+                    <div class="icon-preview" style="width: 32px; height: 32px;">
+                        <img src="web/favicon-32.png" alt="Favicon 32px">
+                    </div>
+                    <div class="icon-label">Favicon Small</div>
+                    <div class="icon-size">32×32</div>
+                    <div class="icon-path">web/favicon-32.png</div>
+                </div>
+
+                <div class="icon-card">
+                    <div class="icon-preview" style="width: 192px; height: 192px;">
+                        <img src="web/favicon-192.png" alt="Favicon 192px">
+                    </div>
+                    <div class="icon-label">Favicon Large</div>
+                    <div class="icon-size">192×192</div>
+                    <div class="icon-path">web/favicon-192.png</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Meta Information -->
+        <section class="meta-info">
+            <h3>📊 Generation Information</h3>
+            <p>Generated from: <code>assets/logo/trendankaralogo.svg</code></p>
+            <p>Brand Colors: <code>#e53e3e</code> (Red), <code>#000000</code> (Black), <code>#ffffff</code> (White)</p>
+            <p>iOS Color Space: Display P3 with sRGB fallback</p>
+            <p>Android Safe Zone: 66dp (Material Design Guidelines)</p>
+            <p>Report: <code>generation-report.json</code></p>
+        </section>
+
+        <!-- Script to check if images exist -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const images = document.querySelectorAll('img');
+                images.forEach(img => {
+                    img.onerror = function() {
+                        this.style.opacity = '0.3';
+                        this.alt = 'Not Generated Yet';
+                        const card = this.closest('.icon-card');
+                        if (card) {
+                            const label = card.querySelector('.icon-label');
+                            if (label) {
+                                label.innerHTML += ' <span style="color: #f59e0b;">(Not Found)</span>';
+                            }
+                        }
+                    };
+                });
+            });
+        </script>
+    </div>
+</body>
+</html>

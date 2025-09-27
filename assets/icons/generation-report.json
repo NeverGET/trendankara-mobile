@@ -1,0 +1,181 @@
+{
+  "timestamp": "2025-09-24T20:32:07.665Z",
+  "source": "/Users/cemalkurt/Projects/trendankara/mobile/assets/logo/trendankaralogo.svg",
+  "iconCount": 24,
+  "platforms": {
+    "ios": true,
+    "android": true,
+    "web": true
+  },
+  "validationPassed": false,
+  "icons": [
+    {
+      "platform": "ios",
+      "variant": "light",
+      "path": "assets/icons/ios/icon-light.png",
+      "size": 38287,
+      "checksum": "882840dc3f462dd3dfa269dab5d8d4b3003bb528e74cbc78e9c9714e25934dde"
+    },
+    {
+      "platform": "ios",
+      "variant": "dark",
+      "path": "assets/icons/ios/icon-dark.png",
+      "size": 38287,
+      "checksum": "882840dc3f462dd3dfa269dab5d8d4b3003bb528e74cbc78e9c9714e25934dde"
+    },
+    {
+      "platform": "ios",
+      "variant": "tinted",
+      "path": "assets/icons/ios/icon-tinted.png",
+      "size": 34989,
+      "checksum": "4cff9c5aca8f2fe2f51884b3a37c1501bcca72bda23c72a5e5758703c48d864f"
+    },
+    {
+      "platform": "ios",
+      "variant": "legacy",
+      "path": "assets/icons/ios/icon.png",
+      "size": 38201,
+      "checksum": "0a72db368cd29451e4402c4ef993a95c4ddc259c49ffeb1c3e086634ddd21bff"
+    },
+    {
+      "platform": "ios",
+      "variant": "light-20",
+      "path": "assets/icons/ios/icon-20.png",
+      "size": 1308,
+      "checksum": "afa5c6d890d95419935962e80ab35093e27ac7282453e7d842d6290c11e883d5"
+    },
+    {
+      "platform": "ios",
+      "variant": "light-29",
+      "path": "assets/icons/ios/icon-29.png",
+      "size": 1730,
+      "checksum": "f55e52012e93632495e19ae47bbc52094669c327cc0bc45d5f3fe1ac160e8d55"
+    },
+    {
+      "platform": "ios",
+      "variant": "light-40",
+      "path": "assets/icons/ios/icon-40.png",
+      "size": 2328,
+      "checksum": "6d35110ffe71dd65ced1e6ac33d2d5e0d49d833de3bdbccd8a438b161b3b85af"
+    },
+    {
+      "platform": "ios",
+      "variant": "light-58",
+      "path": "assets/icons/ios/icon-58.png",
+      "size": 3371,
+      "checksum": "ac8c11e09feb520e2ce70749dd78854a2767833bf2b7ecc13731eb37816e7a34"
+    },
+    {
+      "platform": "ios",
+      "variant": "light-60",
+      "path": "assets/icons/ios/icon-60.png",
+      "size": 3468,
+      "checksum": "40841483ca736a8a6508a17486965d9f4c005bb106a80d474575b9497be8cf93"
+    },
+    {
+      "platform": "ios",
+      "variant": "light-76",
+      "path": "assets/icons/ios/icon-76.png",
+      "size": 4421,
+      "checksum": "a9d3c0927e7ff9657e274aef2e73ec6103102f360c7f7e55c58a99dc48a7ce01"
+    },
+    {
+      "platform": "ios",
+      "variant": "light-80",
+      "path": "assets/icons/ios/icon-80.png",
+      "size": 4660,
+      "checksum": "a7727f1d430cdd5483cf5ad4f807945bdd6b2f61d86e710da30bad4a753012cf"
+    },
+    {
+      "platform": "ios",
+      "variant": "light-87",
+      "path": "assets/icons/ios/icon-87.png",
+      "size": 5086,
+      "checksum": "cae701f43dabefee54ed91708a1138aa8db148e785a2164ec50710e41a5a92e5"
+    },
+    {
+      "platform": "ios",
+      "variant": "light-120",
+      "path": "assets/icons/ios/icon-120.png",
+      "size": 7126,
+      "checksum": "74ffdc1c16a23ba1e3721345c2dc4ef7e91c4bd6617e2ce38eca54ba5cfe33d5"
+    },
+    {
+      "platform": "ios",
+      "variant": "light-152",
+      "path": "assets/icons/ios/icon-152.png",
+      "size": 9013,
+      "checksum": "60611d431428863d1442cfcf2a0a38bf75cb949beb444fcf5500efef5f290fe1"
+    },
+    {
+      "platform": "ios",
+      "variant": "light-167",
+      "path": "assets/icons/ios/icon-167.png",
+      "size": 10054,
+      "checksum": "ea6a4b97535ede61242bb9f2592f8dc7203a3804bcdce86abb9483d044cea1c4"
+    },
+    {
+      "platform": "ios",
+      "variant": "light-180",
+      "path": "assets/icons/ios/icon-180.png",
+      "size": 10672,
+      "checksum": "d0240fab7dac51c3e8f67fa2723bb8e824d0b919cecba9b90fed48681c9963b9"
+    },
+    {
+      "platform": "ios",
+      "variant": "light-1024",
+      "path": "assets/icons/ios/icon-1024.png",
+      "size": 38287,
+      "checksum": "882840dc3f462dd3dfa269dab5d8d4b3003bb528e74cbc78e9c9714e25934dde"
+    },
+    {
+      "platform": "android",
+      "variant": "foreground",
+      "path": "assets/icons/android/adaptive/foreground.png",
+      "size": 10547,
+      "checksum": "682f61e600c82a18e43a4720d9f66bd41eef84bb27e717cf85b152c698770bc0"
+    },
+    {
+      "platform": "android",
+      "variant": "background",
+      "path": "assets/icons/android/adaptive/background.png",
+      "size": 1167,
+      "checksum": "f485823a56bb77f6ef77ce4b9cd59e663b6695610fffc87caab42f8bcb3f268e"
+    },
+    {
+      "platform": "android",
+      "variant": "monochrome",
+      "path": "assets/icons/android/adaptive/monochrome.png",
+      "size": 1997,
+      "checksum": "380e5bdab451a1a577945b1b111c916217e5e45dc2a24a981c347ad8a70f9e88"
+    },
+    {
+      "platform": "android",
+      "variant": "legacy-0",
+      "path": "assets/icons/android/icon-legacy-0.png",
+      "size": 15875,
+      "checksum": "1c8e17a88499be354d69a490128ba693b70f73f4dccc8f8e15fd2510c515c9a4"
+    },
+    {
+      "platform": "android",
+      "variant": "legacy-1",
+      "path": "assets/icons/android/icon-legacy-1.png",
+      "size": 14857,
+      "checksum": "6386d40c63577a6aa38e9c1fa4ae872eb99eea905d7d3cc8391f85969ee4ca30"
+    },
+    {
+      "platform": "web",
+      "variant": "favicon-32",
+      "path": "assets/icons/web/favicon-32.png",
+      "size": 1512,
+      "checksum": "321f36e1b3ab1bbbc349d85640dd6f4806112a715bb0d145c388a3e5d4241cc5"
+    },
+    {
+      "platform": "web",
+      "variant": "favicon-192",
+      "path": "assets/icons/web/favicon-192.png",
+      "size": 6784,
+      "checksum": "ed83939f83b235655ee08242fa2c84685daf301f82f36d504d551ba765682c3d"
+    }
+  ]
+}
