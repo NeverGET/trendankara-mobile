@@ -1,0 +1,42 @@
+{
+  "name": "trendankara-proxy-gateway",
+  "version": "1.0.0",
+  "description": "GCP proxy gateway for TrendAnkara mobile app - forwards requests to trendankara.com with CORS support",
+  "main": "index.js",
+  "type": "module",
+  "engines": {
+    "node": "20"
+  },
+  "scripts": {
+    "start": "node local-server.js",
+    "dev": "NODE_ENV=development node local-server.js",
+    "deploy:proxy": "gcloud functions deploy trendankara-proxy --gen2 --runtime=nodejs20 --region=europe-west3 --source=. --entry-point=proxyHandler --trigger-http --allow-unauthenticated --memory=256Mi --timeout=30s --min-instances=0 --max-instances=100",
+    "deploy:media": "gcloud functions deploy trendankara-media-proxy --gen2 --runtime=nodejs20 --region=europe-west3 --source=. --entry-point=mediaProxy --trigger-http --allow-unauthenticated --memory=512Mi --timeout=60s --min-instances=0 --max-instances=50",
+    "deploy:all": "npm run deploy:proxy && npm run deploy:media",
+    "deploy:frankfurt": "npm run deploy:all",
+    "deploy:netherlands": "gcloud functions deploy trendankara-proxy --gen2 --runtime=nodejs20 --region=europe-west4 --source=. --entry-point=proxyHandler --trigger-http --allow-unauthenticated --memory=256Mi --timeout=30s --min-instances=0 --max-instances=100 && gcloud functions deploy trendankara-media-proxy --gen2 --runtime=nodejs20 --region=europe-west4 --source=. --entry-point=mediaProxy --trigger-http --allow-unauthenticated --memory=512Mi --timeout=60s --min-instances=0 --max-instances=50",
+    "deploy:europe-west3": "npm run deploy:frankfurt",
+    "deploy:europe-west4": "npm run deploy:netherlands",
+    "logs": "gcloud functions logs read trendankara-proxy --tail --region=europe-west3",
+    "logs:media": "gcloud functions logs read trendankara-media-proxy --tail --region=europe-west3",
+    "logs:frankfurt": "gcloud functions logs read trendankara-proxy --tail --region=europe-west3",
+    "logs:netherlands": "gcloud functions logs read trendankara-proxy --tail --region=europe-west4",
+    "test:proxy": "node test-proxy.js",
+    "test:verify": "node -e \"import('./test-proxy.js').then(m => m.verifyDeployment())\"",
+    "test": "npm run test:proxy"
+  },
+  "dependencies": {
+    "@google-cloud/functions-framework": "^3.3.0",
+    "axios": "^1.6.0"
+  },
+  "keywords": [
+    "proxy",
+    "gateway",
+    "gcp",
+    "cloud-functions",
+    "trendankara",
+    "cors"
+  ],
+  "author": "TrendAnkara",
+  "license": "MIT"
+}

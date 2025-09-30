@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useRef, useCallb
 import { useVideoPlayer, VideoPlayer } from 'expo-video';
 import { Platform, AppState, AppStateStatus, Image } from 'react-native';
 import { AudioConfig } from '@/constants/audio';
+import { radioApi } from '@/services/api/radio';
 
 export type AudioState =
   | 'idle'
@@ -40,6 +41,8 @@ export const ExpoVideoPlayerProvider: React.FC<{ children: React.ReactNode }> = 
   });
 
   const [isInitialized, setIsInitialized] = useState(false);
+  const [streamUrl, setStreamUrl] = useState<string | null>(null);
+  const [stationName, setStationName] = useState('TrendAnkara Radyo');
   const appStateRef = useRef(AppState.currentState);
   const statusCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -48,30 +51,52 @@ export const ExpoVideoPlayerProvider: React.FC<{ children: React.ReactNode }> = 
 
   // Create video player with audio-only source and metadata
   const player = useVideoPlayer(
-    {
-      uri: AudioConfig.STREAM_URL,
+    streamUrl ? {
+      uri: streamUrl,
       metadata: {
-        title: 'TrendAnkara Radyo',
+        title: stationName,
         artist: 'Canlı Yayın',
         ...(artworkUri ? { artwork: artworkUri } : {}),
       },
-    },
+    } : null,
     (p) => {
-      p.staysActiveInBackground = true;
-      p.showNowPlayingNotification = true; // Enables native media controls
-      p.volume = 1.0;
+      if (p) {
+        p.staysActiveInBackground = true;
+        p.showNowPlayingNotification = true; // Enables native media controls
+        p.volume = 1.0;
 
-      if (Platform.OS === 'ios') {
-        p.allowsExternalPlayback = false;
+        if (Platform.OS === 'ios') {
+          p.allowsExternalPlayback = false;
+        }
       }
     }
   );
 
-  // Initialize component
+  // Initialize component and fetch radio configuration
   useEffect(() => {
-    // expo-video handles audio session configuration internally
-    // when staysActiveInBackground and showNowPlayingNotification are set
-    setIsInitialized(true);
+    const initializeRadio = async () => {
+      try {
+        // Fetch radio configuration from API
+        const radioConfig = await radioApi.getRadioConfig();
+
+        console.log('Fetched radio config:', radioConfig);
+
+        // Update stream URL and station name from API
+        setStreamUrl(radioConfig.stream_url);
+        if (radioConfig.station_name) {
+          setStationName(radioConfig.station_name);
+        }
+
+        setIsInitialized(true);
+      } catch (error) {
+        console.error('Failed to fetch radio config:', error);
+        // Use fallback URL if API fails
+        setStreamUrl(AudioConfig.STREAM_URL);
+        setIsInitialized(true);
+      }
+    };
+
+    initializeRadio();
   }, []);
 
   // Monitor player status
@@ -106,12 +131,16 @@ export const ExpoVideoPlayerProvider: React.FC<{ children: React.ReactNode }> = 
       });
     };
 
-    // Start monitoring
-    statusCheckIntervalRef.current = setInterval(checkStatus, 500);
+    // Start monitoring with longer interval to reduce CPU/memory usage
+    // Only check every 2 seconds when playing, stop when not playing
+    if (status.state === 'playing') {
+      statusCheckIntervalRef.current = setInterval(checkStatus, 2000);
+    }
 
     return () => {
       if (statusCheckIntervalRef.current) {
         clearInterval(statusCheckIntervalRef.current);
+        statusCheckIntervalRef.current = null;
       }
     };
   }, [player, status.state]);
@@ -137,13 +166,18 @@ export const ExpoVideoPlayerProvider: React.FC<{ children: React.ReactNode }> = 
 
   const play = useCallback(async () => {
     try {
+      if (!streamUrl) {
+        console.warn('Stream URL not loaded yet');
+        return;
+      }
+
       setStatus(prev => ({ ...prev, state: 'loading', isPlaying: false }));
 
       // Update source with metadata including artwork
       const source = {
-        uri: AudioConfig.STREAM_URL,
+        uri: streamUrl,
         metadata: {
-          title: 'TrendAnkara Radyo',
+          title: stationName,
           artist: 'Canlı Yayın',
           ...(artworkUri ? { artwork: artworkUri } : {}),
         },
@@ -163,7 +197,7 @@ export const ExpoVideoPlayerProvider: React.FC<{ children: React.ReactNode }> = 
       });
       throw error;
     }
-  }, [player, artworkUri]);
+  }, [player, artworkUri, streamUrl, stationName]);
 
   const pause = useCallback(async () => {
     try {
@@ -177,13 +211,18 @@ export const ExpoVideoPlayerProvider: React.FC<{ children: React.ReactNode }> = 
 
   const stop = useCallback(async () => {
     try {
+      if (!streamUrl) {
+        console.warn('Stream URL not loaded yet');
+        return;
+      }
+
       player.pause();
 
       // Reset to initial source with metadata
       const source = {
-        uri: AudioConfig.STREAM_URL,
+        uri: streamUrl,
         metadata: {
-          title: 'TrendAnkara Radyo',
+          title: stationName,
           artist: 'Canlı Yayın',
           ...(artworkUri ? { artwork: artworkUri } : {}),
         },
@@ -196,7 +235,7 @@ export const ExpoVideoPlayerProvider: React.FC<{ children: React.ReactNode }> = 
       console.error('Stop failed:', error);
       throw error;
     }
-  }, [player, artworkUri]);
+  }, [player, artworkUri, streamUrl, stationName]);
 
   const contextValue: ExpoVideoPlayerContextType = {
     play,

@@ -1,58 +1,25 @@
-import { useEffect, useState, useCallback } from 'react';
-import WorkingAudioService, { AudioStatus } from '@/services/audio/WorkingAudioService';
+import { useExpoVideoPlayer } from '@/services/audio/ExpoVideoPlayerProvider';
 
+/**
+ * Audio hook that uses the ExpoVideoPlayer context
+ * Provides a simpler interface for audio playback control
+ */
 export function useAudio() {
-  const [status, setStatus] = useState<AudioStatus>({
-    state: 'idle',
-    isPlaying: false,
-  });
+  const {
+    play,
+    pause,
+    stop,
+    status,
+    isPlaying
+  } = useExpoVideoPlayer();
 
-  const audioService = WorkingAudioService.getInstance();
-
-  useEffect(() => {
-    // Add listener for status updates
-    const handleStatusUpdate = (newStatus: AudioStatus) => {
-      setStatus(newStatus);
-    };
-
-    audioService.addListener(handleStatusUpdate);
-
-    return () => {
-      audioService.removeListener(handleStatusUpdate);
-    };
-  }, [audioService]);
-
-  const play = useCallback(async () => {
-    try {
-      await audioService.play();
-    } catch (error) {
-      console.error('Play failed:', error);
-    }
-  }, [audioService]);
-
-  const pause = useCallback(async () => {
-    try {
-      await audioService.pause();
-    } catch (error) {
-      console.error('Pause failed:', error);
-    }
-  }, [audioService]);
-
-  const stop = useCallback(async () => {
-    try {
-      await audioService.stop();
-    } catch (error) {
-      console.error('Stop failed:', error);
-    }
-  }, [audioService]);
-
-  const togglePlayPause = useCallback(async () => {
-    if (status.isPlaying) {
+  const togglePlayPause = async () => {
+    if (isPlaying) {
       await pause();
     } else {
       await play();
     }
-  }, [status.isPlaying, play, pause]);
+  };
 
   return {
     status,
@@ -60,7 +27,7 @@ export function useAudio() {
     pause,
     stop,
     togglePlayPause,
-    isPlaying: status.isPlaying,
+    isPlaying,
     state: status.state,
     error: status.error,
   };

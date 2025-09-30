@@ -1,195 +1,189 @@
-import React from 'react';
-import { StyleSheet, TouchableOpacity, ActivityIndicator, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, ScrollView, View, Image, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Strings } from '@/constants/strings';
-import { useAudioWithNativeControls } from '@/hooks/useAudioWithNativeControls';
 import { AnimatedLogoContainer } from '@/components/player/AnimatedLogoContainer';
 import { AnimationErrorBoundary } from '@/components/player/AnimationErrorBoundary';
+import RadioPlayerControls from '@/components/radio/RadioPlayerControls';
+import SocialMediaButtons from '@/components/social/SocialMediaButtons';
+import { useSettings, useMaintenanceMode } from '@/hooks/useSettings';
+import { radioApi } from '@/services/api/radio';
 
 export default function RadioScreen() {
-  const { play, pause, stop, isPlaying, state, error } = useAudioWithNativeControls();
+  const { playerLogo, loading: settingsLoading } = useSettings();
+  const { isMaintenanceMode } = useMaintenanceMode();
+  const [streamUrl, setStreamUrl] = useState<string>('');
+  const [radioConfig, setRadioConfig] = useState<any>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
 
-  const handlePlayPause = () => {
-    if (isPlaying) {
-      pause();
-    } else {
-      play();
+  // Fetch radio configuration from API
+  useEffect(() => {
+    const loadRadioConfig = async () => {
+      try {
+        const config = await radioApi.getRadioConfig();
+        console.log('Radio config loaded:', config);
+        setStreamUrl(config.stream_url);
+        setRadioConfig(config);
+      } catch (error) {
+        console.error('Failed to load radio config:', error);
+        // Fallback to a default stream if API fails
+        setStreamUrl('https://radyo.yayin.com.tr:5132/stream');
+      }
+    };
+    loadRadioConfig();
+  }, []);
+
+  useEffect(() => {
+    // Check if app is in maintenance mode
+    if (isMaintenanceMode && !settingsLoading) {
+      Alert.alert(
+        'Bakım Modu',
+        'Uygulama şu anda bakım modundadır. Lütfen daha sonra tekrar deneyiniz.',
+        [{ text: 'Tamam' }]
+      );
     }
+  }, [isMaintenanceMode, settingsLoading]);
+
+  const handlePlayerError = (error: Error) => {
+    console.error('Player error:', error);
+    Alert.alert(
+      'Oynatıcı Hatası',
+      'Yayın oynatılırken bir hata oluştu. Lütfen tekrar deneyiniz.',
+      [{ text: 'Tamam' }]
+    );
   };
 
-  return (
-    <ThemedView style={styles.container}>
-      <AnimationErrorBoundary>
-        <AnimatedLogoContainer
-          isPlaying={isPlaying}
-          style={styles.logoContainer}
-        />
-      </AnimationErrorBoundary>
+  // Get metadata URL from config if available
+  const metadataUrl = radioConfig?.metadata_url;
 
-      <View style={styles.playerContainer}>
-        <TouchableOpacity
-          onPress={handlePlayPause}
-          style={styles.playButton}
-          disabled={state === 'loading'}
-        >
-          {state === 'loading' ? (
-            <ActivityIndicator size="large" color="#DC2626" />
+  if (settingsLoading) {
+    return (
+      <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
+        <ThemedView style={styles.container}>
+          <ThemedText>Yükleniyor...</ThemedText>
+        </ThemedView>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ThemedView style={styles.container}>
+        {/* Logo Section */}
+        <AnimationErrorBoundary>
+          {playerLogo ? (
+            <View style={styles.logoContainer}>
+              <Image
+                source={{ uri: playerLogo }}
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
+            </View>
           ) : (
-            <IconSymbol
-              name={isPlaying ? 'pause.circle.fill' : 'play.circle.fill'}
-              size={80}
-              color="#DC2626"
+            <AnimatedLogoContainer
+              isPlaying={isPlaying}
+              style={styles.logoContainer}
             />
           )}
-        </TouchableOpacity>
+        </AnimationErrorBoundary>
 
-        {state === 'buffering' && (
-          <View style={styles.statusContainer}>
-            <ActivityIndicator size="small" color="#DC2626" />
-            <ThemedText style={styles.statusText}>Yükleniyor...</ThemedText>
-          </View>
+        {/* Player Controls */}
+        {streamUrl ? (
+          <RadioPlayerControls
+            streamUrl={streamUrl}
+            metadataUrl={metadataUrl}
+            onError={handlePlayerError}
+            onStateChange={(state) => setIsPlaying(state === 'playing')}
+            style={styles.playerControls}
+          />
+        ) : (
+          <ThemedText style={styles.loadingText}>Yayın yükleniyor...</ThemedText>
         )}
 
-        {state === 'error' && error && (
-          <View style={styles.errorContainer}>
-            <ThemedText style={styles.errorText}>{error}</ThemedText>
-          </View>
-        )}
+        {/* Social Media Links */}
+        <View style={styles.socialSection}>
+          <ThemedText style={styles.sectionTitle}>Bizi Takip Edin</ThemedText>
+          <SocialMediaButtons style={styles.socialButtons} />
+        </View>
 
-        {isPlaying && (
-          <ThemedText style={styles.statusText}>Şu anda çalıyor</ThemedText>
-        )}
 
-        {false && (
-          <View style={styles.backgroundModeContainer}>
-            <IconSymbol
-              name="circle.fill"
-              size={8}
-              color="#10B981"
-              style={styles.backgroundModeIcon}
-            />
-            <ThemedText style={styles.backgroundModeText}>
-              {Strings.player.backgroundMode}
+        {/* Maintenance Mode Banner */}
+        {isMaintenanceMode && (
+          <View style={styles.maintenanceBanner}>
+            <ThemedText style={styles.maintenanceText}>
+              Bakım Modu Aktif
             </ThemedText>
           </View>
         )}
-
-        {false && (
-          <View style={styles.audioFocusContainer}>
-            <IconSymbol
-              name="exclamationmark.triangle.fill"
-              size={16}
-              color="#F59E0B"
-              style={styles.audioFocusIcon}
-            />
-            <ThemedText style={styles.audioFocusText}>
-              {Strings.player.audioFocusLost}
-            </ThemedText>
-          </View>
-        )}
-      </View>
-
-      <TouchableOpacity
-        onPress={stop}
-        style={styles.stopButton}
-        disabled={state === 'idle' || state === 'stopped'}
-      >
-        <ThemedText style={styles.stopButtonText}>Durdur</ThemedText>
-      </TouchableOpacity>
-    </ThemedView>
+      </ThemedView>
+    </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollView: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
+    paddingTop: 40,
+    paddingBottom: 40,
+    paddingHorizontal: 20,
   },
   logoContainer: {
     marginBottom: 20,
-  },
-  playerContainer: {
+    width: 324,  // 180% of 180 = 324
+    height: 182,  // 16:9 aspect ratio (324 / 16 * 9 = 182.25)
+    overflow: 'visible',  // Allow spotlight effects to show outside bounds
     alignItems: 'center',
-    marginVertical: 40,
+    justifyContent: 'center',
   },
-  playButton: {
+  logoImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',  // Preserve aspect ratio
+  },
+  playerControls: {
+    marginVertical: 30,
+    width: '100%',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#666',
     marginVertical: 20,
   },
-  statusContainer: {
-    flexDirection: 'row',
+  socialSection: {
+    marginTop: 40,
     alignItems: 'center',
-    marginTop: 20,
   },
-  statusText: {
-    fontSize: 16,
-    marginLeft: 10,
-    color: '#666',
-  },
-  errorContainer: {
-    marginTop: 20,
-    padding: 15,
-    backgroundColor: 'rgba(220, 38, 38, 0.1)',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#DC2626',
-  },
-  errorText: {
-    color: '#DC2626',
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  stopButton: {
-    paddingHorizontal: 30,
-    paddingVertical: 12,
-    backgroundColor: '#DC2626',
-    borderRadius: 8,
-    marginTop: 20,
-  },
-  stopButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
+  sectionTitle: {
+    fontSize: 18,
     fontWeight: '600',
+    color: '#333',
+    marginBottom: 20,
   },
-  backgroundModeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#10B981',
+  socialButtons: {
+    marginTop: 10,
   },
-  backgroundModeIcon: {
-    marginRight: 6,
-  },
-  backgroundModeText: {
-    fontSize: 12,
-    color: '#10B981',
-    fontWeight: '500',
-  },
-  audioFocusContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
-    borderRadius: 6,
+  maintenanceBanner: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    right: 20,
+    backgroundColor: '#FEF3C7',
+    padding: 12,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: '#F59E0B',
   },
-  audioFocusIcon: {
-    marginRight: 6,
-  },
-  audioFocusText: {
-    fontSize: 12,
-    color: '#F59E0B',
-    fontWeight: '500',
+  maintenanceText: {
+    color: '#92400E',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });

@@ -144,14 +144,14 @@ const styles = StyleSheet.create({
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
-    // Ensure proper stacking context for layered effects
-    overflow: 'hidden',
+    // Allow spotlight effects to extend beyond bounds
+    overflow: 'visible',
   },
   animatedContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    // Smooth transitions for size changes during orientation
-    overflow: 'hidden',
+    // Allow spotlight effects to be visible outside bounds
+    overflow: 'visible',
   },
   spotlightContainer: {
     // SpotlightEffects uses absolute positioning and zIndex: -1

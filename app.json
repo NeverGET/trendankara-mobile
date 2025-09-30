@@ -1,28 +1,45 @@
 {
   "expo": {
-    "name": "mobile",
+    "name": "TrendAnkara",
     "slug": "mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icons/ios/icon.png",
-    "scheme": "mobile",
+    "scheme": "trendankara",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "description": "TrendAnkara - İstanbul'un En Trend Radyosu. Canlı yayın, haberler, anketler ve daha fazlası.",
+    "keywords": [
+      "radyo",
+      "müzik",
+      "haber",
+      "ankara",
+      "canlı yayın"
+    ],
+    "privacy": "public",
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
         "UIBackgroundModes": [
-          "audio",
           "audio"
         ],
-        "NSMicrophoneUsageDescription": "This app requires microphone access for audio recording and playback features.",
-        "ITSAppUsesNonExemptEncryption": false
+        "NSMicrophoneUsageDescription": "This app may require microphone access for audio features.",
+        "NSCameraUsageDescription": "This app may require camera access for sharing features.",
+        "NSPhotoLibraryUsageDescription": "This app may require photo library access for sharing features.",
+        "ITSAppUsesNonExemptEncryption": false,
+        "UILaunchStoryboardName": "SplashScreen",
+        "UIStatusBarStyle": "UIStatusBarStyleDefault"
       },
-      "bundleIdentifier": "com.neverget.trendankara",
+      "bundleIdentifier": "com.trendankara.mobile",
+      "buildNumber": "1",
       "icon": {
         "light": "assets/icons/ios/icon-light.png",
         "dark": "assets/icons/ios/icon-dark.png",
         "tinted": "assets/icons/ios/icon-tinted.png"
+      },
+      "requireFullScreen": false,
+      "config": {
+        "usesNonExemptEncryption": false
       }
     },
     "android": {
@@ -36,10 +53,18 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.trendankara.mobile",
+      "versionCode": 2,
       "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE",
         "android.permission.FOREGROUND_SERVICE",
         "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
-        "android.permission.WAKE_LOCK"
+        "android.permission.WAKE_LOCK",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.VIBRATE"
+      ],
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -73,9 +98,46 @@
       "reactCompiler": true
     },
     "extra": {
-      "router": {},
+      "router": {
+        "origin": "https://trendankara.com",
+        "asyncRoutes": true
+      },
       "eas": {
         "projectId": "55f2a9e8-b926-416c-9eaf-213c127638dc"
+      }
+    },
+    "notification": {
+      "icon": "./assets/icons/notification.png",
+      "color": "#000000",
+      "androidMode": "default",
+      "androidCollapsedTitle": "TrendAnkara"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "linking": {
+      "prefixes": [
+        "trendankara://",
+        "https://trendankara.com",
+        "https://app.trendankara.com"
+      ],
+      "config": {
+        "screens": {
+          "(tabs)": {
+            "screens": {
+              "index": "",
+              "polls": "polls",
+              "news": "news",
+              "sponsors": "sponsors"
+            }
+          },
+          "modal": "modal",
+          "settings": "settings",
+          "about": "about",
+          "onboarding": "onboarding",
+          "article": "article/:id",
+          "poll": "poll/:id"
+        }
       }
     }
   }

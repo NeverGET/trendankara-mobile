@@ -56,7 +56,7 @@ export function SpotlightEffects({
   }, [colorScheme, themeOpacity, themeBlurRadius]);
 
   // Performance monitoring state
-  const [orbCount, setOrbCount] = useState(3); // Start with full 3 orbs
+  const [orbCount, setOrbCount] = useState(8); // Start with 8 orbs for better coverage
   const [isLowPerformance, setIsLowPerformance] = useState(false);
 
   // FPS tracking
@@ -88,17 +88,17 @@ export function SpotlightEffects({
       if (frameCount.current % 60 === 0 && fpsHistory.current.length >= 10) {
         const averageFPS = fpsHistory.current.reduce((sum, fps) => sum + fps, 0) / fpsHistory.current.length;
 
-        if (averageFPS < 50 && orbCount > 1) {
-          // Reduce orb count if FPS drops below 50
-          setOrbCount(prev => Math.max(1, prev - 1));
+        if (averageFPS < 45 && orbCount > 3) {
+          // Reduce orb count if FPS drops below 45
+          setOrbCount(prev => Math.max(3, prev - 2));
           setIsLowPerformance(true);
-        } else if (averageFPS > 55 && orbCount < 3 && !isLowPerformance) {
+        } else if (averageFPS > 55 && orbCount < 8 && !isLowPerformance) {
           // Restore orbs if performance improves
-          setOrbCount(prev => Math.min(3, prev + 1));
+          setOrbCount(prev => Math.min(8, prev + 1));
         }
 
-        // Mark as low performance device if we've reduced to 1 orb
-        if (orbCount === 1 && averageFPS < 50) {
+        // Mark as low performance device if we've reduced to 3 orbs
+        if (orbCount === 3 && averageFPS < 45) {
           setIsLowPerformance(true);
         }
       }
@@ -112,12 +112,24 @@ export function SpotlightEffects({
     runOnJS(updatePerformanceMetrics)(frameInfo.timestamp);
   }, true);
 
-  // Adjust opacity based on theme - darker for light mode, brighter for dark mode
-  const baseOpacity = colorScheme === 'dark' ? 0.8 : 0.4;
+  // Adjust opacity based on theme - reduced saturation for readability
+  const baseOpacity = colorScheme === 'dark' ? 0.5 : 0.25; // Lower base opacity
 
-  // Enhance effects when playing
-  const playingMultiplier = isPlaying ? 1.3 : 1.0;
+  // Enhance effects when playing but keep it subtle
+  const playingMultiplier = isPlaying ? 1.2 : 1.0;
   const finalOpacity = baseOpacity * playingMultiplier;
+
+  // Define varied red shades with different hues for less saturation
+  const redShades = [
+    'rgba(220, 38, 38, 0.35)',   // Base red - #DC2626 with 35% opacity
+    'rgba(239, 68, 68, 0.30)',   // Lighter red - #EF4444 with 30% opacity
+    'rgba(185, 28, 28, 0.40)',   // Darker red - #B91C1C with 40% opacity
+    'rgba(248, 113, 113, 0.25)', // Coral red - #F87171 with 25% opacity
+    'rgba(220, 52, 69, 0.35)',   // Crimson - with 35% opacity
+    'rgba(200, 30, 30, 0.38)',   // Deep red - with 38% opacity
+    'rgba(230, 70, 70, 0.28)',   // Bright red - with 28% opacity
+    'rgba(195, 45, 55, 0.33)',   // Maroon tint - with 33% opacity
+  ];
 
   // Adjust animation durations based on performance and state
   const getAnimationDuration = useCallback((baseDuration: number) => {
@@ -162,52 +174,89 @@ export function SpotlightEffects({
 
   return (
     <Animated.View style={[styles.container, animatedContainerStyle, style]} pointerEvents="none">
-      {/* Primary orb - always visible, larger, positioned top-left behind logo */}
+      {/* Orb 1 - Top-left corner of 16:9 area */}
       <SpotlightOrb
-        size={isLowPerformance ? 100 : 120}
-        opacity={isBuffering ? getBufferingProps().opacity : finalOpacity * 0.9}
-        animationDuration={isBuffering ? getBufferingProps().animationDuration : getAnimationDuration(isPlaying ? 2500 : 4000)}
-        isPulsing={isBuffering ? getBufferingProps().isPulsing : (isPlaying && !isLowPerformance)}
-        style={[
-          styles.orb,
-          {
-            top: '15%',
-            left: '10%',
-          }
-        ]}
+        size={isLowPerformance ? 90 : 110}
+        color={redShades[0]}
+        animationDuration={getAnimationDuration(isPlaying ? 2200 : 4000)}
+        isPulsing={isPlaying && !isLowPerformance}
+        style={[styles.orb, { top: '20%', left: '8%' }]}
       />
 
-      {/* Secondary orb - conditionally rendered based on performance */}
+      {/* Orb 2 - Top-center of 16:9 area */}
       {orbCount >= 2 && (
         <SpotlightOrb
-          size={isLowPerformance ? 75 : 90}
-          opacity={isBuffering ? getBufferingProps().opacity : finalOpacity * 0.7}
-          animationDuration={isBuffering ? getBufferingProps().animationDuration : getAnimationDuration(isPlaying ? 3000 : 5000)}
-          isPulsing={isBuffering ? getBufferingProps().isPulsing : (isPlaying && !isLowPerformance)}
-          style={[
-            styles.orb,
-            {
-              bottom: '20%',
-              right: '15%',
-            }
-          ]}
+          size={isLowPerformance ? 70 : 95}
+          color={redShades[1]}
+          animationDuration={getAnimationDuration(isPlaying ? 2600 : 4500)}
+          isPulsing={isPlaying && !isLowPerformance}
+          style={[styles.orb, { top: '15%', left: '42%' }]}
         />
       )}
 
-      {/* Tertiary orb - only on high-performance devices */}
-      {orbCount >= 3 && !isLowPerformance && (
+      {/* Orb 3 - Top-right corner of 16:9 area */}
+      {orbCount >= 3 && (
         <SpotlightOrb
-          size={70}
-          opacity={isBuffering ? getBufferingProps().opacity : finalOpacity * 0.5}
-          animationDuration={isBuffering ? getBufferingProps().animationDuration : getAnimationDuration(isPlaying ? 3500 : 6000)}
-          isPulsing={isBuffering ? getBufferingProps().isPulsing : isPlaying}
-          style={[
-            styles.orb,
-            {
-              top: '35%',
-              right: '20%',
-            }
-          ]}
+          size={isLowPerformance ? 85 : 105}
+          color={redShades[2]}
+          animationDuration={getAnimationDuration(isPlaying ? 2400 : 4200)}
+          isPulsing={isPlaying}
+          style={[styles.orb, { top: '18%', right: '10%' }]}
+        />
+      )}
+
+      {/* Orb 4 - Middle-left of 16:9 area */}
+      {orbCount >= 4 && (
+        <SpotlightOrb
+          size={isLowPerformance ? 75 : 100}
+          color={redShades[3]}
+          animationDuration={getAnimationDuration(isPlaying ? 2800 : 4800)}
+          isPulsing={isPlaying}
+          style={[styles.orb, { top: '42%', left: '5%' }]}
+        />
+      )}
+
+      {/* Orb 5 - Middle-right of 16:9 area */}
+      {orbCount >= 5 && (
+        <SpotlightOrb
+          size={isLowPerformance ? 80 : 98}
+          color={redShades[4]}
+          animationDuration={getAnimationDuration(isPlaying ? 2300 : 4300)}
+          isPulsing={isPlaying}
+          style={[styles.orb, { top: '45%', right: '6%' }]}
+        />
+      )}
+
+      {/* Orb 6 - Bottom-left corner of 16:9 area */}
+      {orbCount >= 6 && (
+        <SpotlightOrb
+          size={isLowPerformance ? 88 : 108}
+          color={redShades[5]}
+          animationDuration={getAnimationDuration(isPlaying ? 2500 : 4600)}
+          isPulsing={isPlaying}
+          style={[styles.orb, { bottom: '22%', left: '12%' }]}
+        />
+      )}
+
+      {/* Orb 7 - Bottom-center of 16:9 area */}
+      {orbCount >= 7 && (
+        <SpotlightOrb
+          size={isLowPerformance ? 72 : 92}
+          color={redShades[6]}
+          animationDuration={getAnimationDuration(isPlaying ? 2700 : 4700)}
+          isPulsing={isPlaying}
+          style={[styles.orb, { bottom: '18%', left: '45%' }]}
+        />
+      )}
+
+      {/* Orb 8 - Bottom-right corner of 16:9 area */}
+      {orbCount >= 8 && (
+        <SpotlightOrb
+          size={isLowPerformance ? 82 : 103}
+          color={redShades[7]}
+          animationDuration={getAnimationDuration(isPlaying ? 2100 : 4100)}
+          isPulsing={isPlaying}
+          style={[styles.orb, { bottom: '20%', right: '11%' }]}
         />
       )}
     </Animated.View>
