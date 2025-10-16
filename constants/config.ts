@@ -17,6 +17,14 @@ export const FEATURES = {
   USE_VIDEO_PLAYER_ONLY: true,
 
   /**
+   * Use TrackPlayerService instead of VideoPlayerService for audio
+   * When true, uses react-native-track-player for seamless metadata updates
+   * When false, uses expo-video (current implementation with static metadata)
+   * Toggle this flag to switch between implementations without code changes
+   */
+  USE_TRACK_PLAYER: true,
+
+  /**
    * Show empty state components when no data
    * When false, shows loading spinner instead
    */

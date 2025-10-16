@@ -10,13 +10,11 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import videoPlayerService from '@/services/audio/VideoPlayerService';
+import { trackPlayerService } from '@/services/audio';
 import { FEATURES } from '@/constants/config';
 import { useNowPlaying } from '@/hooks/useNowPlaying';
 import type { PlayerStateType } from '@/types/models';
 
-// Fallback audio service imports (commented for now, available for rollback)
-// import { Audio } from 'expo-av';
-// import { AudioService } from '@/services/audio/AudioService';
 
 interface RadioPlayerControlsProps {
   streamUrl: string;
@@ -43,8 +41,32 @@ export const RadioPlayerControls: React.FC<RadioPlayerControlsProps> = ({
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 
+  // Select audio service based on feature flag
+  const audioService = FEATURES.USE_TRACK_PLAYER ? trackPlayerService : videoPlayerService;
+
   // Get now playing info
   const { nowPlaying } = useNowPlaying(metadataUrl);
+
+  // Update now playing metadata when it changes
+  useEffect(() => {
+    console.log('[RadioPlayerControls] metadataUrl:', metadataUrl);
+    console.log('[RadioPlayerControls] nowPlaying updated:', nowPlaying);
+
+    // Only update if player is active (not stopped or error)
+    if (playerState === 'playing' || playerState === 'paused' || playerState === 'buffering') {
+      if (FEATURES.USE_TRACK_PLAYER) {
+        // TrackPlayerService: Updates metadata WITHOUT interrupting playback
+        trackPlayerService.updateNowPlayingInfo(nowPlaying);
+      } else if (FEATURES.USE_VIDEO_PLAYER_ONLY) {
+        // VideoPlayerService: Static metadata only (no dynamic updates)
+        videoPlayerService.updateNowPlayingInfo({
+          title: 'Trend Ankara',
+          artist: 'Canlı Yayın',
+          song: 'Trend Ankara'
+        });
+      }
+    }
+  }, [nowPlaying, playerState]);
 
   // Notify parent component when player state changes
   useEffect(() => {
@@ -53,10 +75,9 @@ export const RadioPlayerControls: React.FC<RadioPlayerControlsProps> = ({
 
   // Get display text for now playing
   const getNowPlayingText = () => {
-    if (nowPlaying?.song || nowPlaying?.title) {
-      return nowPlaying.song || nowPlaying.title;
-    }
-    return 'Now Playing info goes here';
+    const text = nowPlaying?.song || nowPlaying?.title || 'Now Playing info goes here';
+    console.log('[RadioPlayerControls] getNowPlayingText returning:', text);
+    return text;
   };
 
   useEffect(() => {
@@ -65,7 +86,7 @@ export const RadioPlayerControls: React.FC<RadioPlayerControlsProps> = ({
 
     return () => {
       // Cleanup on unmount - just stop, don't cleanup the singleton
-      videoPlayerService.stop();
+      audioService.stop();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -74,32 +95,24 @@ export const RadioPlayerControls: React.FC<RadioPlayerControlsProps> = ({
     try {
       setIsInitializing(true);
 
-      if (FEATURES.USE_VIDEO_PLAYER_ONLY) {
-        // Use VideoPlayerService singleton
-        await videoPlayerService.initialize();
+      // Initialize the selected audio service
+      await audioService.initialize();
 
-        // Subscribe to state changes
-        videoPlayerService.addStateListener((state) => {
-          setPlayerState(state);
-        });
+      // Subscribe to state changes
+      audioService.addStateListener((state) => {
+        setPlayerState(state);
+      });
 
-        // Subscribe to errors
-        videoPlayerService.addErrorListener((error) => {
-          console.error('Player error:', error);
-          onError?.(error);
-        });
+      // Subscribe to errors
+      audioService.addErrorListener((error) => {
+        console.error('Player error:', error);
+        onError?.(error);
+      });
 
-        setIsInitializing(false);
-        console.log('VideoPlayerService initialized with background playback support');
-      } else {
-        // Fallback to dual system (expo-av + custom service)
-        // This code path is available for rollback if needed
-        console.log('Feature flag disabled: falling back to dual audio system');
-        console.warn('Dual audio system fallback not fully implemented - requires expo-av setup');
-        setIsInitializing(false);
-        // TODO: Implement fallback audio service initialization
-        // await initializeFallbackAudio();
-      }
+      setIsInitializing(false);
+
+      const serviceName = FEATURES.USE_TRACK_PLAYER ? 'TrackPlayerService' : 'VideoPlayerService';
+      console.log(`[RadioPlayerControls] ${serviceName} initialized with background playback`);
     } catch (error) {
       console.error('Failed to initialize audio:', error);
       setIsInitializing(false);
@@ -123,30 +136,21 @@ export const RadioPlayerControls: React.FC<RadioPlayerControlsProps> = ({
         }),
       ]).start();
 
-      if (FEATURES.USE_VIDEO_PLAYER_ONLY) {
-        // Use VideoPlayerService singleton
-        // Get the actual current state from the player service
-        const actualPlayerState = videoPlayerService.getState();
+      // Get the actual current state from the player service
+      const actualPlayerState = audioService.getState();
 
-        if (actualPlayerState === 'stopped' || actualPlayerState === 'error') {
-          // Load and play stream
-          setPlayerState('buffering');
-          await videoPlayerService.loadStream(streamUrl);
-          await videoPlayerService.play();
-          console.log('Stream loaded and playing');
-        } else if (actualPlayerState === 'playing') {
-          // Pause the stream - state will update via listener
-          await videoPlayerService.pause();
-        } else if (actualPlayerState === 'paused' || actualPlayerState === 'buffering') {
-          // Resume playback - state will update via listener
-          await videoPlayerService.play();
-        }
-      } else {
-        // Fallback to dual system handling
-        console.log('Using fallback audio system for playback');
-        console.warn('Fallback audio system not fully implemented');
-        // TODO: Implement fallback audio playback logic
-        // await handleFallbackPlayPause();
+      if (actualPlayerState === 'stopped' || actualPlayerState === 'error') {
+        // Load and play stream
+        setPlayerState('buffering');
+        await audioService.loadStream(streamUrl);
+        await audioService.play();
+        console.log('[RadioPlayerControls] Stream loaded and playing');
+      } else if (actualPlayerState === 'playing') {
+        // Pause the stream - state will update via listener
+        await audioService.pause();
+      } else if (actualPlayerState === 'paused' || actualPlayerState === 'buffering') {
+        // Resume playback - state will update via listener
+        await audioService.play();
       }
     } catch (error) {
       console.error('Failed to toggle playback:', error);
@@ -157,17 +161,8 @@ export const RadioPlayerControls: React.FC<RadioPlayerControlsProps> = ({
 
   const handleStop = async () => {
     try {
-      if (FEATURES.USE_VIDEO_PLAYER_ONLY) {
-        await videoPlayerService.stop();
-        setPlayerState('stopped');
-      } else {
-        // Fallback to dual system handling
-        console.log('Using fallback audio system for stop');
-        console.warn('Fallback audio system not fully implemented');
-        setPlayerState('stopped');
-        // TODO: Implement fallback audio stop logic
-        // await handleFallbackStop();
-      }
+      await audioService.stop();
+      setPlayerState('stopped');
     } catch (error) {
       console.error('Failed to stop playback:', error);
       onError?.(error as Error);
@@ -178,14 +173,7 @@ export const RadioPlayerControls: React.FC<RadioPlayerControlsProps> = ({
   const toggleMute = async () => {
     const newMuted = !isMuted;
     setIsMuted(newMuted);
-    if (FEATURES.USE_VIDEO_PLAYER_ONLY) {
-      await videoPlayerService.setVolume(newMuted ? 0 : volume);
-    } else {
-      // Fallback mute toggle
-      console.log('Using fallback audio system for mute toggle');
-      // TODO: Implement fallback audio mute toggle
-      // await handleFallbackMuteToggle(newMuted);
-    }
+    await audioService.setVolume(newMuted ? 0 : volume);
   };
 
   const getPlayPauseIcon = () => {
@@ -234,6 +222,15 @@ export const RadioPlayerControls: React.FC<RadioPlayerControlsProps> = ({
 
   return (
     <View style={[styles.container, style]}>
+      {/* Debug Mode Indicator - Only shown in development */}
+      {__DEV__ && (
+        <View style={[styles.debugBadge, isDark && styles.debugBadgeDark]}>
+          <Text style={[styles.debugText, isDark && styles.debugTextDark]}>
+            {FEATURES.USE_TRACK_PLAYER ? '🎵 TrackPlayer' : '📹 VideoPlayer'}
+          </Text>
+        </View>
+      )}
+
       {/* State Display */}
       <View style={[
         styles.stateContainer,
@@ -287,13 +284,36 @@ export const RadioPlayerControls: React.FC<RadioPlayerControlsProps> = ({
         playerState === 'playing' && styles.nowPlayingContainerActive
       ]}>
         <View style={[styles.nowPlayingIndicator, playerState === 'playing' && styles.nowPlayingIndicatorActive]} />
-        <Text style={[
-          styles.nowPlayingText,
-          isDark && styles.nowPlayingTextDark,
-          playerState === 'playing' && styles.nowPlayingTextActive
-        ]}>
-          {getNowPlayingText()}
-        </Text>
+        <View style={styles.nowPlayingTextContainer}>
+          {nowPlaying?.song || nowPlaying?.title ? (
+            <>
+              <Text style={[
+                styles.nowPlayingSong,
+                isDark && styles.nowPlayingTextDark,
+                playerState === 'playing' && styles.nowPlayingTextActive
+              ]} numberOfLines={1}>
+                {nowPlaying.song || nowPlaying.title}
+              </Text>
+              {nowPlaying.artist && (
+                <Text style={[
+                  styles.nowPlayingArtist,
+                  isDark && styles.nowPlayingArtistDark,
+                  playerState === 'playing' && styles.nowPlayingArtistActive
+                ]} numberOfLines={1}>
+                  {nowPlaying.artist}
+                </Text>
+              )}
+            </>
+          ) : (
+            <Text style={[
+              styles.nowPlayingText,
+              isDark && styles.nowPlayingTextDark,
+              playerState === 'playing' && styles.nowPlayingTextActive
+            ]}>
+              Now Playing info goes here
+            </Text>
+          )}
+        </View>
       </View>
     </View>
   );
@@ -315,6 +335,29 @@ const styles = StyleSheet.create({
     backgroundColor: '#DC2626',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  debugBadge: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  debugBadgeDark: {
+    backgroundColor: '#374151',
+    borderColor: '#4B5563',
+  },
+  debugText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  debugTextDark: {
+    color: '#9CA3AF',
   },
   stateContainer: {
     flexDirection: 'row',
@@ -396,9 +439,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 20,
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 12,
     borderRadius: 20,
     backgroundColor: '#D9D9D9',  // Neutral light gray for light mode
+    maxWidth: '100%',
   },
   nowPlayingContainerDark: {
     backgroundColor: '#404040',  // Neutral dark gray for dark mode
@@ -411,10 +455,16 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: '#999999',  // Neutral medium gray
-    marginRight: 8,
+    marginRight: 12,
+    flexShrink: 0,
   },
   nowPlayingIndicatorActive: {
     backgroundColor: '#FFFFFF',
+  },
+  nowPlayingTextContainer: {
+    flex: 1,
+    flexDirection: 'column',
+    gap: 2,
   },
   nowPlayingText: {
     fontSize: 12,
@@ -428,6 +478,26 @@ const styles = StyleSheet.create({
   },
   nowPlayingTextActive: {
     color: '#FFFFFF',  // White when playing (same for both modes)
+  },
+  nowPlayingSong: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#333333',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+  },
+  nowPlayingArtist: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#666666',
+    letterSpacing: 0.2,
+  },
+  nowPlayingArtistDark: {
+    color: '#CCCCCC',
+  },
+  nowPlayingArtistActive: {
+    color: '#FFFFFF',
+    opacity: 0.9,
   },
 });
 

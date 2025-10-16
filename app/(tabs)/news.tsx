@@ -202,38 +202,36 @@ export default function NewsScreen() {
       </View>
 
       {/* News List */}
-      {filteredArticles.length === 0 ? (
-        <View style={screenStyles.emptyContainer}>
+      <FlatList
+        data={filteredArticles}
+        renderItem={renderNewsItem}
+        keyExtractor={(item) => item.id.toString()}
+        numColumns={displayMode === 'grid' ? 2 : 1}
+        key={displayMode} // Force re-render when switching modes
+        columnWrapperStyle={displayMode === 'grid' ? styles.gridColumnWrapper : undefined}
+        ItemSeparatorComponent={displayMode === 'list' ? () => <View style={styles.listSeparator} /> : undefined}
+        contentContainerStyle={[
+          styles.listContent,
+          displayMode === 'grid' && styles.gridContent,
+          filteredArticles.length === 0 && styles.emptyListContent
+        ]}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
           <EmptyState
             message={searchText ? "Aramanızla eşleşen haber bulunamadı" : "Henüz haber bulunmamaktadır"}
             icon="newspaper-outline"
             subtitle={searchText ? "Farklı anahtar kelimeler deneyin" : "Yeni haberler yakında eklenecek"}
           />
-        </View>
-      ) : (
-        <FlatList
-          data={filteredArticles}
-          renderItem={renderNewsItem}
-          keyExtractor={(item) => item.id.toString()}
-          numColumns={displayMode === 'grid' ? 2 : 1}
-          key={displayMode} // Force re-render when switching modes
-          columnWrapperStyle={displayMode === 'grid' ? styles.gridColumnWrapper : undefined}
-          ItemSeparatorComponent={displayMode === 'list' ? () => <View style={styles.listSeparator} /> : undefined}
-          contentContainerStyle={[
-            styles.listContent,
-            displayMode === 'grid' && styles.gridContent
-          ]}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              tintColor={colors.tint}
-              colors={[colors.tint]}
-            />
-          }
-        />
-      )}
+        }
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.tint}
+            colors={[colors.tint]}
+          />
+        }
+      />
 
       {/* Custom Modal */}
       {selectedArticle && (
@@ -303,6 +301,11 @@ const styles = StyleSheet.create({
   gridItemWrapper: {
     flex: 1,
     paddingHorizontal: Spacing.xs,
+  },
+  emptyListContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   loadingText: {
     marginTop: 10,

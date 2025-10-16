@@ -13,8 +13,12 @@ export const useNowPlaying = (metadataUrl?: string) => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (!metadataUrl) return;
+    if (!metadataUrl) {
+      console.log('[useNowPlaying] No metadataUrl provided');
+      return;
+    }
 
+    console.log('[useNowPlaying] Starting with URL:', metadataUrl);
     let isMounted = true;
 
     const fetchMetadata = async () => {
@@ -31,6 +35,7 @@ export const useNowPlaying = (metadataUrl?: string) => {
           setIsLoading(true);
         }
 
+        console.log('[useNowPlaying] Fetching metadata from:', metadataUrl);
         const response = await fetch(metadataUrl, {
           signal: abortControllerRef.current.signal,
           // Add timeout to prevent hanging requests
@@ -38,6 +43,8 @@ export const useNowPlaying = (metadataUrl?: string) => {
             'Cache-Control': 'no-cache',
           },
         });
+
+        console.log('[useNowPlaying] Response status:', response.status);
 
         // Add timeout for the response
         const timeoutId = setTimeout(() => {
@@ -49,31 +56,65 @@ export const useNowPlaying = (metadataUrl?: string) => {
         const text = await response.text();
         clearTimeout(timeoutId);
 
+        console.log('[useNowPlaying] Received text:', text);
+
         // Parse the metadata (usually comes as plain text or JSON)
         // Common formats: "Artist - Song" or JSON with title/artist fields
         if (text && isMounted) {
           // Try to parse as JSON first
           try {
             const json = JSON.parse(text);
-            setNowPlaying({
-              title: json.title || json.song,
-              artist: json.artist,
-              song: json.song || json.title,
-            });
+            console.log('[useNowPlaying] Parsed JSON:', json);
+
+            // Check if it's the TrendAnkara format: {"nowPlaying":"SONG - ARTIST"}
+            if (json.nowPlaying) {
+              const nowPlayingText = json.nowPlaying;
+              const parts = nowPlayingText.split(' - ');
+              if (parts.length >= 2) {
+                const newData = {
+                  song: parts[0].trim(),
+                  artist: parts[1].trim(),
+                  title: nowPlayingText,
+                };
+                console.log('[useNowPlaying] Setting now playing (TrendAnkara format):', newData);
+                setNowPlaying(newData);
+              } else {
+                const newData = {
+                  title: nowPlayingText.trim(),
+                  song: nowPlayingText.trim(),
+                };
+                console.log('[useNowPlaying] Setting now playing (single field):', newData);
+                setNowPlaying(newData);
+              }
+            } else {
+              // Standard JSON format
+              const newData = {
+                title: json.title || json.song,
+                artist: json.artist,
+                song: json.song || json.title,
+              };
+              console.log('[useNowPlaying] Setting now playing (standard format):', newData);
+              setNowPlaying(newData);
+            }
           } catch {
-            // If not JSON, assume it's plain text format "Artist - Song"
+            // If not JSON, assume it's plain text format "SONG - ARTIST"
+            console.log('[useNowPlaying] Not JSON, parsing as plain text');
             const parts = text.split(' - ');
             if (parts.length >= 2) {
-              setNowPlaying({
-                artist: parts[0].trim(),
-                song: parts.slice(1).join(' - ').trim(),
+              const newData = {
+                song: parts[0].trim(),  // First part is the song name
+                artist: parts.slice(1).join(' - ').trim(),  // Rest is the artist name
                 title: text,
-              });
+              };
+              console.log('[useNowPlaying] Setting now playing (plain text):', newData);
+              setNowPlaying(newData);
             } else {
-              setNowPlaying({
+              const newData = {
                 title: text.trim(),
                 song: text.trim(),
-              });
+              };
+              console.log('[useNowPlaying] Setting now playing (single text):', newData);
+              setNowPlaying(newData);
             }
           }
         }
@@ -94,8 +135,9 @@ export const useNowPlaying = (metadataUrl?: string) => {
     // Fetch immediately
     fetchMetadata();
 
-    // Set up polling interval (every 60 seconds instead of 30 to reduce memory usage)
-    intervalRef.current = setInterval(fetchMetadata, 60000);
+    // Set up polling interval (every 5 seconds to match stream delay)
+    // Using 5000ms to sync with the ~5 second playback delay
+    intervalRef.current = setInterval(fetchMetadata, 5000);
 
     return () => {
       isMounted = false;

@@ -54,8 +54,15 @@ export default function RadioScreen() {
     );
   };
 
-  // Get metadata URL from config if available
-  const metadataUrl = radioConfig?.metadata_url;
+  // Build metadata URL by replacing /stream with /currentsong or adding /currentsong
+  // Examples:
+  //   https://radyo.yayin.com.tr:5132/stream -> https://radyo.yayin.com.tr:5132/currentsong
+  //   https://radyo.yayin.com.tr:5132/ -> https://radyo.yayin.com.tr:5132/currentsong
+  const metadataUrl = streamUrl
+    ? (streamUrl.includes('/stream')
+        ? streamUrl.replace(/\/stream\/?$/, '/currentsong')
+        : streamUrl.replace(/\/?$/, '/currentsong'))
+    : undefined;
 
   if (settingsLoading) {
     return (
