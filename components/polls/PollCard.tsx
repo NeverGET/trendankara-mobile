@@ -25,12 +25,14 @@ interface PollCardProps {
   poll: Poll;
   onVote?: (pollId: number, optionId: number) => Promise<void>;
   showResults?: boolean;
+  votedOptionId?: number;
 }
 
 export const PollCard: React.FC<PollCardProps> = ({
   poll,
   onVote,
   showResults = false,
+  votedOptionId,
 }) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
@@ -102,7 +104,7 @@ export const PollCard: React.FC<PollCardProps> = ({
 
       {/* Poll Content */}
       {hasVoted || !isActive ? (
-        <PollResults poll={poll} />
+        <PollResults poll={poll} userVotedOptionId={votedOptionId} />
       ) : (
         <View style={styles.optionsContainer}>
           {(poll.options || []).map((option) => (

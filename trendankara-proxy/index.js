@@ -219,7 +219,7 @@ http('proxyHandler', async (req, res) => {
       url: targetUrl,
       params: req.query,
       headers: filteredHeaders,
-      timeout: 25000, // 25 seconds (leaving 5s buffer for Cloud Function timeout)
+      timeout: 55000, // 55 seconds (leaving 5s buffer for 60s Cloud Function timeout)
       maxRedirects: 3, // Limit redirects to prevent loops
       validateStatus: () => true, // Accept all HTTP status codes
       httpsAgent: httpsAgent // Use the agent that bypasses SSL verification
@@ -281,7 +281,7 @@ http('proxyHandler', async (req, res) => {
         code: 'TIMEOUT_ERROR',
         timestamp: timestamp
       };
-      console.error(`[${timestamp}] Timeout error: Backend did not respond within 30 seconds`);
+      console.error(`[${timestamp}] Timeout error: Backend did not respond within 60 seconds`);
     } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED' || error.code === 'ENETUNREACH') {
       // 502 Bad Gateway for unreachable backend
       statusCode = 502;

@@ -198,8 +198,25 @@ class NewsService {
     }
 
     try {
-      const response = await apiClient.get<NewsArticle>(NEWS_ENDPOINTS.GET_NEWS_DETAIL(slug));
-      const article = response.data;
+      const response = await apiClient.get<any>(NEWS_ENDPOINTS.GET_NEWS_DETAIL(slug));
+
+      // Handle API response structure: {success: true, data: {...}}
+      const apiArticle = response.data?.data || response.data;
+
+      if (!apiArticle) {
+        console.error('No article data in response');
+        return null;
+      }
+
+      // Transform API response to NewsArticle
+      const article = this.transformApiResponseToNewsArticle(apiArticle);
+
+      console.log('📰 Fetched news article detail:', {
+        slug,
+        id: article.id,
+        hasContent: !!article.content,
+        contentLength: article.content?.length || 0
+      });
 
       // Cache for 30 minutes
       await apiCache.set(cacheKey, article, 30 * 60 * 1000);
@@ -484,6 +501,7 @@ class NewsService {
       isFeatured: apiItem.isFeatured || false,
       isBreaking: apiItem.isBreaking || false,
       isHot: apiItem.isHot || false,
+      redirectUrl: apiItem.redirectUrl || undefined,  // NEW: Optional redirect URL for opening in browser
     };
   }
 

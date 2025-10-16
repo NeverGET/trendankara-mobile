@@ -105,7 +105,7 @@ class PollsService {
       };
 
       const response = await apiClient.post<PollVoteResponse>(
-        API_ENDPOINTS.POLLS.VOTE(),
+        API_ENDPOINTS.POLLS.VOTE(pollId),
         request
       );
 
@@ -176,13 +176,40 @@ class PollsService {
     // Filter out invalid polls and normalize structure
     const validPolls = polls
       .filter(poll => poll && typeof poll.id !== 'undefined')
-      .map(poll => ({
-        ...poll,
-        options: poll.options || poll.items || []
-      }));
+      .map(poll => {
+        // Use items from backend, map to options array
+        const items = poll.items || poll.options || [];
 
-    // Additional validation - ensure options is always an array
-    return validPolls.filter(poll => Array.isArray(poll.options));
+        // Transform each item/option to match PollOption interface
+        const options = Array.isArray(items) ? items.map((item: any) => {
+          // Transform image URL from relative to absolute if needed
+          let imageUrl = item.imageUrl;
+          if (imageUrl && !imageUrl.startsWith('http')) {
+            imageUrl = `https://trendankara.com${imageUrl}`;
+            console.log('🖼️ Poll image URL transformed:', { original: item.imageUrl, transformed: imageUrl });
+          } else if (imageUrl) {
+            console.log('🖼️ Poll image URL (already absolute):', imageUrl);
+          }
+
+          return {
+            id: item.id,
+            text: item.text || item.title || '',  // Backend uses "title", we use "text"
+            voteCount: item.voteCount || 0,
+            percentage: item.percentage || 0,
+            imageUrl: imageUrl || undefined,       // NEW: Optional image URL (transformed)
+            description: item.description || undefined, // NEW: Optional description
+            displayOrder: item.displayOrder ?? undefined, // NEW: Optional display order (use ?? for 0 values)
+          };
+        }) : [];
+
+        return {
+          ...poll,
+          options,
+        };
+      });
+
+    // Additional validation - ensure options is always an array with content
+    return validPolls.filter(poll => Array.isArray(poll.options) && poll.options.length > 0);
   }
 
   /**

@@ -11,10 +11,12 @@ import {
   StyleSheet,
   Animated,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'react-native';
 import { BrandColors, Colors } from '@/constants/theme';
 import type { PollOption as PollOptionType } from '@/types/models';
+import { getImageSource, getPlaceholderImage } from '@/utils/imageProxy';
 
 interface PollOptionProps {
   option: PollOptionType;
@@ -119,6 +121,34 @@ export const PollOption: React.FC<PollOptionProps> = ({
 
       {/* Option Content */}
       <View style={styles.content}>
+        {/* Option Image (if available) */}
+        {option.imageUrl && (() => {
+          const imageSource = getImageSource(option.imageUrl);
+          console.log('🎨 PollOption rendering image:', {
+            optionId: option.id,
+            optionText: option.text,
+            originalUrl: option.imageUrl,
+            imageSource
+          });
+          return (
+            <View style={styles.imageContainer}>
+              <Image
+                source={imageSource}
+                style={styles.optionImage}
+                contentFit="cover"
+                transition={200}
+                placeholder={{ uri: getPlaceholderImage() }}
+                onError={(error) => {
+                  console.error('❌ Image load error for option:', option.text, error);
+                }}
+                onLoad={() => {
+                  console.log('✅ Image loaded successfully for option:', option.text);
+                }}
+              />
+            </View>
+          );
+        })()}
+
         <View style={styles.optionInfo}>
           <Ionicons
             name={getOptionIcon()}
@@ -126,15 +156,26 @@ export const PollOption: React.FC<PollOptionProps> = ({
             color={getOptionIconColor()}
             style={styles.icon}
           />
-          <Text
-            style={[
-              styles.optionText,
-              { color: colors.text },
-              isUserChoice && styles.boldText,
-            ]}
-          >
-            {option.text}
-          </Text>
+          <View style={styles.textContainer}>
+            <Text
+              style={[
+                styles.optionText,
+                { color: colors.text },
+                isUserChoice && styles.boldText,
+              ]}
+            >
+              {option.text}
+            </Text>
+            {/* Option Description (if available) */}
+            {option.description && (
+              <Text
+                style={[styles.optionDescription, { color: colors.icon }]}
+                numberOfLines={1}
+              >
+                {option.description}
+              </Text>
+            )}
+          </View>
         </View>
 
         {/* Results Info */}
@@ -191,13 +232,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
+  imageContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 8,
+    overflow: 'hidden',
+    marginRight: 12,
+    backgroundColor: '#f5f5f5',
+  },
+  optionImage: {
+    width: '100%',
+    height: '100%',
+  },
   icon: {
     marginRight: 10,
   },
+  textContainer: {
+    flex: 1,
+  },
   optionText: {
     fontSize: 16,
-    flex: 1,
     lineHeight: 20,
+  },
+  optionDescription: {
+    fontSize: 12,
+    marginTop: 2,
+    fontStyle: 'italic',
   },
   boldText: {
     fontWeight: '600',

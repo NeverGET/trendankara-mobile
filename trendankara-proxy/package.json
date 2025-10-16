@@ -10,11 +10,11 @@
   "scripts": {
     "start": "node local-server.js",
     "dev": "NODE_ENV=development node local-server.js",
-    "deploy:proxy": "gcloud functions deploy trendankara-proxy --gen2 --runtime=nodejs20 --region=europe-west3 --source=. --entry-point=proxyHandler --trigger-http --allow-unauthenticated --memory=256Mi --timeout=30s --min-instances=0 --max-instances=100",
+    "deploy:proxy": "gcloud functions deploy trendankara-proxy --gen2 --runtime=nodejs20 --region=europe-west3 --source=. --entry-point=proxyHandler --trigger-http --allow-unauthenticated --memory=256Mi --timeout=60s --min-instances=0 --max-instances=100",
     "deploy:media": "gcloud functions deploy trendankara-media-proxy --gen2 --runtime=nodejs20 --region=europe-west3 --source=. --entry-point=mediaProxy --trigger-http --allow-unauthenticated --memory=512Mi --timeout=60s --min-instances=0 --max-instances=50",
     "deploy:all": "npm run deploy:proxy && npm run deploy:media",
     "deploy:frankfurt": "npm run deploy:all",
-    "deploy:netherlands": "gcloud functions deploy trendankara-proxy --gen2 --runtime=nodejs20 --region=europe-west4 --source=. --entry-point=proxyHandler --trigger-http --allow-unauthenticated --memory=256Mi --timeout=30s --min-instances=0 --max-instances=100 && gcloud functions deploy trendankara-media-proxy --gen2 --runtime=nodejs20 --region=europe-west4 --source=. --entry-point=mediaProxy --trigger-http --allow-unauthenticated --memory=512Mi --timeout=60s --min-instances=0 --max-instances=50",
+    "deploy:netherlands": "gcloud functions deploy trendankara-proxy --gen2 --runtime=nodejs20 --region=europe-west4 --source=. --entry-point=proxyHandler --trigger-http --allow-unauthenticated --memory=256Mi --timeout=60s --min-instances=0 --max-instances=100 && gcloud functions deploy trendankara-media-proxy --gen2 --runtime=nodejs20 --region=europe-west4 --source=. --entry-point=mediaProxy --trigger-http --allow-unauthenticated --memory=512Mi --timeout=60s --min-instances=0 --max-instances=50",
     "deploy:europe-west3": "npm run deploy:frankfurt",
     "deploy:europe-west4": "npm run deploy:netherlands",
     "logs": "gcloud functions logs read trendankara-proxy --tail --region=europe-west3",

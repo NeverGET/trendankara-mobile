@@ -73,7 +73,7 @@ export const PollResults: React.FC<PollResultsProps> = ({
             SONUÇLAR
           </Text>
         </View>
-        <View style={styles.totalVotes}>
+        <View style={[styles.totalVotes, { backgroundColor: colors.surface }]}>
           <Text style={[styles.totalVotesText, { color: colors.text }]}>
             Toplam {poll.totalVotes} oy
           </Text>
@@ -196,7 +196,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   totalVotes: {
-    backgroundColor: BrandColors.gray100,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,

@@ -37,40 +37,74 @@ export const usePolls = (): UsePollsState & UsePollsActions => {
   const [votedPolls, setVotedPolls] = useState<Record<number, number>>({});
   const [deviceId, setDeviceId] = useState<string>('');
 
-  // Initialize device ID and load voted polls
+  // Initialize device ID and load voted polls, then load polls
   useEffect(() => {
-    initializeData();
+    console.log('🔧 [usePolls] Hook mounted, initializing data...');
+    const init = async () => {
+      const loadedVotedPolls = await initializeData();
+      console.log('🔧 [usePolls] Initialization complete, now loading polls with votedPolls:', loadedVotedPolls);
+      loadPolls(false, loadedVotedPolls);
+    };
+    init();
   }, []);
 
-  // Load polls on mount
+  // Debug: Log when votedPolls state changes and reload polls with updated vote status
   useEffect(() => {
-    loadPolls();
-  }, []);
+    console.log('🔧 [usePolls] votedPolls state changed:', votedPolls);
 
-  const initializeData = async () => {
+    // If we have polls already loaded and votedPolls changed, update the polls with new vote status
+    if (polls.length > 0 && Object.keys(votedPolls).length > 0) {
+      console.log('🔧 [usePolls] Updating existing polls with new vote status...');
+      const updatedPolls = polls.map(poll => {
+        const userHasVoted = !!votedPolls[poll.id];
+        console.log(`🔧 [usePolls] Updating poll ${poll.id} - userHasVoted:`, userHasVoted);
+        return {
+          ...poll,
+          userHasVoted,
+        };
+      });
+      setPolls(updatedPolls);
+    }
+  }, [votedPolls]);
+
+  const initializeData = async (): Promise<Record<number, number>> => {
     try {
+      console.log('🔧 [usePolls] Initializing data...');
+
       // Get or create device ID
       let storedDeviceId = await AsyncStorage.getItem(DEVICE_ID_KEY);
+      console.log('🔧 [usePolls] Device ID from storage:', storedDeviceId);
+
       if (!storedDeviceId) {
         // Create a unique device ID
         const deviceName = Device.deviceName || 'Unknown';
         const timestamp = Date.now();
         storedDeviceId = `${deviceName}_${timestamp}_${Math.random().toString(36).substr(2, 9)}`;
         await AsyncStorage.setItem(DEVICE_ID_KEY, storedDeviceId);
+        console.log('🔧 [usePolls] Created new device ID:', storedDeviceId);
       }
       setDeviceId(storedDeviceId);
 
       // Load voted polls from storage
       const storedVotedPolls = await AsyncStorage.getItem(VOTED_POLLS_KEY);
+      console.log('🔧 [usePolls] Voted polls from storage:', storedVotedPolls);
+
       if (storedVotedPolls) {
-        setVotedPolls(JSON.parse(storedVotedPolls));
+        const parsed = JSON.parse(storedVotedPolls);
+        console.log('🔧 [usePolls] Parsed voted polls:', parsed);
+        setVotedPolls(parsed);
+        return parsed; // Return the loaded data
+      } else {
+        console.log('🔧 [usePolls] No voted polls found in storage');
+        return {}; // Return empty object
       }
     } catch (error) {
-      console.error('Error initializing polls data:', error);
+      console.error('❌ [usePolls] Error initializing polls data:', error);
+      return {}; // Return empty object on error
     }
   };
 
-  const loadPolls = useCallback(async (forceRefresh = false) => {
+  const loadPolls = useCallback(async (forceRefresh = false, votedPollsData?: Record<number, number>) => {
     try {
       setError(null);
       if (!refreshing) {
@@ -79,14 +113,25 @@ export const usePolls = (): UsePollsState & UsePollsActions => {
 
       let pollsData = await pollsService.getCurrentPolls(!forceRefresh);
 
+      // Use provided votedPollsData or fall back to state
+      const currentVotedPolls = votedPollsData ?? votedPolls;
+      console.log('🔧 [usePolls] Using votedPolls:', currentVotedPolls, '(provided:', votedPollsData !== undefined, ')');
+
       // Ensure pollsData is an array before mapping
       if (Array.isArray(pollsData)) {
-        // Update polls with local vote status
-        const updatedPolls = pollsData.map(poll => ({
-          ...poll,
-          userHasVoted: !!votedPolls[poll.id],
-        }));
+        console.log('🔧 [usePolls] Current votedPolls for mapping:', currentVotedPolls);
 
+        // Update polls with local vote status
+        const updatedPolls = pollsData.map(poll => {
+          const userHasVoted = !!currentVotedPolls[poll.id];
+          console.log(`🔧 [usePolls] Poll ${poll.id} - userHasVoted:`, userHasVoted, 'votedOption:', currentVotedPolls[poll.id]);
+          return {
+            ...poll,
+            userHasVoted,
+          };
+        });
+
+        console.log('🔧 [usePolls] Updated polls with vote status:', updatedPolls.map(p => ({ id: p.id, userHasVoted: p.userHasVoted })));
         setPolls(updatedPolls);
       } else {
         console.warn('Polls data is not an array, forcing fresh data:', pollsData);
@@ -94,10 +139,15 @@ export const usePolls = (): UsePollsState & UsePollsActions => {
         try {
           pollsData = await pollsService.getCurrentPolls(true);
           if (Array.isArray(pollsData)) {
-            const updatedPolls = pollsData.map(poll => ({
-              ...poll,
-              userHasVoted: !!votedPolls[poll.id],
-            }));
+            console.log('🔧 [usePolls] Retry - Current votedPolls:', currentVotedPolls);
+            const updatedPolls = pollsData.map(poll => {
+              const userHasVoted = !!currentVotedPolls[poll.id];
+              console.log(`🔧 [usePolls] Retry - Poll ${poll.id} - userHasVoted:`, userHasVoted, 'votedOption:', currentVotedPolls[poll.id]);
+              return {
+                ...poll,
+                userHasVoted,
+              };
+            });
             setPolls(updatedPolls);
           } else {
             setPolls([]);
@@ -114,7 +164,7 @@ export const usePolls = (): UsePollsState & UsePollsActions => {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [refreshing, votedPolls]);
+  }, [refreshing, votedPolls]); // Keep votedPolls in deps for when called without explicit data
 
   const refreshPolls = useCallback(async () => {
     setRefreshing(true);
@@ -172,7 +222,9 @@ export const usePolls = (): UsePollsState & UsePollsActions => {
   }, [votedPolls]);
 
   const votedOption = useCallback((pollId: number): number | null => {
-    return votedPolls[pollId] || null;
+    const option = votedPolls[pollId] || null;
+    console.log(`🔧 [usePolls] votedOption called for poll ${pollId}:`, option);
+    return option;
   }, [votedPolls]);
 
   const clearCache = useCallback(async () => {

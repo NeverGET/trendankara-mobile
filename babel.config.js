@@ -3,8 +3,8 @@ module.exports = function (api) {
   return {
     presets: ['babel-preset-expo'],  // Use Expo preset, not metro preset
     plugins: [
-      // Add reanimated plugin last if using react-native-reanimated
-      'react-native-reanimated/plugin'
+      // Add worklets plugin last (replaces react-native-reanimated/plugin)
+      'react-native-worklets/plugin'
     ].filter(Boolean)
   };
 };

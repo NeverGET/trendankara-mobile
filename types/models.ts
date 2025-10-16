@@ -51,6 +51,9 @@ export interface PollOption {
   text: string;
   voteCount: number;
   percentage: number;
+  imageUrl?: string;         // Optional image URL for visual poll options
+  description?: string;      // Optional description text for the option
+  displayOrder?: number;     // Optional display order for sorting options
 }
 
 /**
@@ -86,6 +89,7 @@ export interface NewsArticle {
   author: string | null;
   readTime: number;
   isNew: boolean;
+  redirectUrl?: string;      // Optional redirect URL for opening article in browser
 }
 
 /**

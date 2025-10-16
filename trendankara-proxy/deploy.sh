@@ -45,7 +45,7 @@ gcloud functions deploy $FUNCTION_NAME \
   --entry-point proxyRequest \
   --region $REGION \
   --memory 128MB \
-  --timeout 30s \
+  --timeout 60s \
   --min-instances 0 \
   --max-instances 100 \
   --set-env-vars TARGET_API_BASE=https://trendankara.com,NODE_ENV=production \

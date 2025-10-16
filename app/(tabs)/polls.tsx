@@ -22,7 +22,7 @@ export default function PollsScreen() {
   const colors = Colors[colorScheme ?? 'light'];
   const screenStyles = createScreenStyles(colorScheme ?? 'light');
   const [refreshing, setRefreshing] = useState(false);
-  const { polls, loading, error, refreshPolls, submitVote } = usePolls();
+  const { polls, loading, error, refreshPolls, submitVote, votedOption } = usePolls();
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -92,6 +92,7 @@ export default function PollsScreen() {
               key={poll.id}
               poll={poll}
               onVote={(optionId) => handleVote(poll.id, optionId)}
+              votedOptionId={votedOption(poll.id) || undefined}
             />
           ))
         )}

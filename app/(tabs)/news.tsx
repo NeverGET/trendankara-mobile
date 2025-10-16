@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   StyleSheet,
   View,
@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, BorderRadius } from '@/constants/themes';
@@ -40,10 +41,17 @@ export default function NewsScreen() {
   const [displayMode, setDisplayMode] = useState<'grid' | 'list'>('list');
   const [searchText, setSearchText] = useState('');
 
-  // Load news articles
+  // Load news articles on mount
   useEffect(() => {
     loadNews();
   }, []);
+
+  // Refresh news when tab comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      loadNews(true); // Force refresh with fresh data
+    }, [])
+  );
 
   const loadNews = async (isRefreshing = false) => {
     try {
@@ -80,10 +88,15 @@ export default function NewsScreen() {
     );
   }, [articles, searchText]);
 
-  const handleArticlePress = (article: NewsArticle) => {
+  const handleArticlePress = async (article: NewsArticle) => {
     try {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      setSelectedArticle(article);
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+      // Fetch full article details from API
+      const fullArticle = await newsService.getNewsArticle(article.slug);
+
+      // Show modal with full content
+      setSelectedArticle(fullArticle || article);
       setModalVisible(true);
     } catch (error) {
       console.error('Error handling article press:', error);
@@ -102,10 +115,19 @@ export default function NewsScreen() {
 
   const handleShareArticle = async (article: NewsArticle) => {
     try {
-      const message = `${article.title}\n\n${article.excerpt}\n\n#TrendAnkara`;
+      // Build share message with article URL if available
+      let message = `${article.title}\n\n${article.excerpt}`;
+
+      if (article.redirectUrl) {
+        message += `\n\n🔗 ${article.redirectUrl}`;
+      }
+
+      message += '\n\n#TrendAnkara';
+
       await Share.share({
         message,
         title: article.title,
+        url: article.redirectUrl, // iOS will use this for native share
       });
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (error) {
@@ -114,21 +136,53 @@ export default function NewsScreen() {
     }
   };
 
+  const handleOpenInBrowser = async (article: NewsArticle) => {
+    if (!article.redirectUrl) return;
+
+    try {
+      const canOpen = await Linking.canOpenURL(article.redirectUrl);
+      if (canOpen) {
+        await Linking.openURL(article.redirectUrl);
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      } else {
+        Alert.alert('Hata', 'Bu bağlantı açılamadı');
+      }
+    } catch (error) {
+      console.error('Error opening URL:', error);
+      Alert.alert('Hata', 'Bağlantı açılırken bir hata oluştu');
+    }
+  };
+
   const getModalActions = (article: NewsArticle): ModalAction[] => {
-    return [
-      {
-        label: 'Paylaş',
-        icon: 'share',
+    const actions: ModalAction[] = [];
+
+    // Add "Open in Browser" action if redirectUrl exists
+    if (article.redirectUrl) {
+      actions.push({
+        label: 'Web\'te Aç',
+        icon: 'open-outline',
         variant: 'primary',
-        onPress: () => handleShareArticle(article),
-      },
-      {
-        label: 'Kapat',
-        icon: 'close',
-        variant: 'secondary',
-        onPress: handleCloseModal,
-      },
-    ];
+        onPress: () => handleOpenInBrowser(article),
+      });
+    }
+
+    // Always add Share action
+    actions.push({
+      label: 'Paylaş',
+      icon: 'share',
+      variant: article.redirectUrl ? 'outline' : 'primary',  // Secondary style if browser option exists
+      onPress: () => handleShareArticle(article),
+    });
+
+    // Always add Close action
+    actions.push({
+      label: 'Kapat',
+      icon: 'close',
+      variant: 'secondary',
+      onPress: handleCloseModal,
+    });
+
+    return actions;
   };
 
   const renderNewsItem = ({ item }: { item: NewsArticle }) => {
@@ -239,7 +293,7 @@ export default function NewsScreen() {
           visible={modalVisible}
           onClose={handleCloseModal}
           title={selectedArticle.title}
-          description={selectedArticle.excerpt || selectedArticle.content}
+          description={selectedArticle.content || selectedArticle.excerpt}
           imageUrl={selectedArticle.imageUrl}
           actions={getModalActions(selectedArticle)}
         />

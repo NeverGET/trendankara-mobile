@@ -32,17 +32,25 @@ export function AnimatedTabIcon({
   const { isPlaying } = useAudio();
   const scale = useSharedValue(1);
   const pulseScale = useSharedValue(1);
+  const [isMounted, setIsMounted] = React.useState(false);
+
+  // Ensure component is mounted before animations
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Scale animation when focused
   useEffect(() => {
+    if (!isMounted) return;
     scale.value = withSpring(focused ? 1.2 : 1, {
       damping: 15,
       stiffness: 150,
     });
-  }, [focused, scale]);
+  }, [focused, scale, isMounted]);
 
   // Pulse animation when playing
   useEffect(() => {
+    if (!isMounted) return;
     if (isPlaying) {
       pulseScale.value = withRepeat(
         withTiming(1.1, { duration: 1000 }),
@@ -52,7 +60,7 @@ export function AnimatedTabIcon({
     } else {
       pulseScale.value = withTiming(1, { duration: 300 });
     }
-  }, [isPlaying, pulseScale]);
+  }, [isPlaying, pulseScale, isMounted]);
 
   const animatedStyle = useAnimatedStyle(() => {
     const combinedScale = scale.value * pulseScale.value;

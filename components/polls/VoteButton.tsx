@@ -15,7 +15,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'react-native';
 import { BrandColors, Colors } from '@/constants/theme';
-import { Haptics } from 'expo-haptics';
+import * as Haptics from 'expo-haptics';
 
 interface VoteButtonProps {
   onPress: () => void;
@@ -130,7 +130,7 @@ export const VoteButton: React.FC<VoteButtonProps> = ({
       });
     } else {
       baseStyle.push({
-        backgroundColor: colors.tint,
+        backgroundColor: BrandColors.primary, // Use brand red instead of colors.tint (white in dark mode)
       });
     }
 
@@ -155,7 +155,8 @@ export const VoteButton: React.FC<VoteButtonProps> = ({
     if (disabled) {
       return colors.icon;
     }
-    return BrandColors.tertiary;
+    // Always use white text for active buttons (red/green/error backgrounds)
+    return '#FFFFFF';
   };
 
   return (
