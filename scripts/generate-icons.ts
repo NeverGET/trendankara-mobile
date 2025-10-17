@@ -1104,24 +1104,16 @@ async function generateAndroidForeground(svg: Buffer): Promise<Buffer> {
         const SAFE_ZONE_SIZE = 264;       // 66dp * 4 (xxxhdpi scale factor)
         const SAFE_ZONE_OFFSET = (TOTAL_SIZE - SAFE_ZONE_SIZE) / 2; // 84px offset for centering
 
-        // Validate input SVG buffer
-        if (!svg || svg.length === 0) {
-            throw new Error('Invalid SVG buffer - buffer is empty or null');
+        // Load PNG source instead of using SVG (SVG contains old logo)
+        const pngPath = 'assets/logo/TrendAnkaraLogo.png';
+        if (!fs.existsSync(pngPath)) {
+            throw new Error(`PNG source file not found: ${pngPath}. Foreground layer requires PNG file. Ensure TrendAnkaraLogo.png exists in assets/logo/ directory.`);
         }
+        const pngBuffer = await fs.promises.readFile(pngPath);
+        printMsg(YELLOW, `  Loading PNG source: ${pngPath} (${Math.round(pngBuffer.length / 1024)}KB)`);
 
-        // Get SVG metadata to understand source dimensions
-        let svgMetadata;
-        try {
-            svgMetadata = await sharp(svg).metadata();
-            if (!svgMetadata.width || !svgMetadata.height) {
-                printMsg(YELLOW, "⚠ SVG metadata incomplete, proceeding with default processing");
-            }
-        } catch (error) {
-            printMsg(YELLOW, `⚠ Could not read SVG metadata: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        }
-
-        // First, render the SVG to fit within the safe zone (264x264px)
-        const logoBuffer = await sharp(svg)
+        // First, render the PNG to fit within the safe zone (264x264px)
+        const logoBuffer = await sharp(pngBuffer)
             .resize(SAFE_ZONE_SIZE, SAFE_ZONE_SIZE, {
                 fit: 'contain',                    // Maintain aspect ratio within safe zone
                 background: { r: 0, g: 0, b: 0, alpha: 0 } // Transparent background
@@ -1277,44 +1269,57 @@ async function generateAndroidMonochrome(svg: Buffer): Promise<Buffer> {
         // - Total canvas: 108x108dp
         // - Safe zone: 66x66dp (centered) - same as foreground
         // - xxxhdpi scaling: 4x (432x432px total, 264x264px safe zone)
-        // - Style: Single color silhouette (white foreground, transparent background)
-        // - Purpose: Android 13+ will tint this based on wallpaper colors
+        // - Style: Single color silhouette (white foreground #FFFFFF, transparent background)
+        // - Purpose: Android 13+ Material You will tint this based on wallpaper colors
+        // - Source: Uses PNG (assets/logo/TrendAnkaraLogo.png) instead of SVG for explicit alpha channel
+        // - Algorithm: Extract alpha mask → Create white RGB → Recombine alpha → Resize → Composite
+        // - Fix: Replaces broken threshold(128)/negate() approach that caused blank themed icons
         const TOTAL_SIZE = 432;           // 108dp * 4 (xxxhdpi scale factor)
         const SAFE_ZONE_SIZE = 264;       // 66dp * 4 (xxxhdpi scale factor)
         const SAFE_ZONE_OFFSET = (TOTAL_SIZE - SAFE_ZONE_SIZE) / 2; // 84px offset for centering
 
-        // Validate input SVG buffer
-        if (!svg || svg.length === 0) {
-            throw new Error('Invalid SVG buffer - buffer is empty or null');
+        // Load PNG source for monochrome generation (replaces SVG processing)
+        const pngPath = 'assets/logo/TrendAnkaraLogo.png';
+        if (!fs.existsSync(pngPath)) {
+            throw new Error(`PNG source file not found: ${pngPath}. Monochrome layer requires PNG with explicit alpha channel. Ensure TrendAnkaraLogo.png exists in assets/logo/ directory. This file must be a 1024x1024 PNG with transparent background.`);
         }
+        const pngBuffer = await fs.promises.readFile(pngPath);
+        printMsg(YELLOW, `  Loading PNG source: ${pngPath} (${Math.round(pngBuffer.length / 1024)}KB)`);
 
-        // Get SVG metadata to understand source dimensions
-        let svgMetadata;
-        try {
-            svgMetadata = await sharp(svg).metadata();
-            if (!svgMetadata.width || !svgMetadata.height) {
-                printMsg(YELLOW, "⚠ SVG metadata incomplete, proceeding with default processing");
-            }
-        } catch (error) {
-            printMsg(YELLOW, `⚠ Could not read SVG metadata: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        }
+        // NEW (FIXED): PNG alpha-based white silhouette extraction
+        // Step 1: Extract alpha channel as grayscale mask
+        const alphaMask = await sharp(pngBuffer)
+            .extractChannel('alpha')
+            .toBuffer();
 
-        // First, convert the SVG to a monochrome silhouette within the safe zone
-        // This creates a single white color silhouette maintaining the original shape
-        const silhouetteBuffer = await sharp(svg)
+        printMsg(YELLOW, `  Extracted alpha mask from PNG (identifies logo vs background)`);
+
+        // Step 2: Create white RGB image (strip alpha temporarily)
+        const whiteImage = await sharp(pngBuffer)
+            .removeAlpha()  // Flatten to RGB
+            .linear([0, 0, 0], [255, 255, 255])  // Set all channels to white
+            .toBuffer();
+
+        // Step 3: Recombine white RGB with original alpha mask
+        const whiteSilhouette = await sharp(whiteImage)
+            .joinChannel(alphaMask)  // Add alpha back as 4th channel
+            .toBuffer();
+
+        printMsg(YELLOW, `  Created white silhouette preserving logo shape`);
+
+        // Step 4: Resize to fit within safe zone
+        const silhouetteBuffer = await sharp(whiteSilhouette)
             .resize(SAFE_ZONE_SIZE, SAFE_ZONE_SIZE, {
-                fit: 'contain',                    // Maintain aspect ratio within safe zone
-                background: { r: 0, g: 0, b: 0, alpha: 0 } // Transparent background
+                fit: 'contain',
+                background: { r: 0, g: 0, b: 0, alpha: 0 }
             })
-            .threshold(128)                       // Convert to black and white with 50% threshold
-            .negate()                            // Invert colors: make logo areas white, background transparent
             .png({
                 compressionLevel: 6,
                 adaptiveFiltering: true,
-                palette: false,                    // Force RGBA mode for alpha channel
+                palette: false,
                 quality: 100,
                 progressive: false,
-                force: true                       // Ensure PNG with alpha channel
+                force: true
             })
             .toBuffer();
 
@@ -1364,6 +1369,64 @@ async function generateAndroidMonochrome(svg: Buffer): Promise<Buffer> {
 
         if (!hasAlpha) {
             printMsg(YELLOW, "⚠ Warning: Generated monochrome layer may not have proper alpha channel for transparency");
+        }
+
+        // Enhanced validation: Check for blank layer using pixel statistics
+        const stats = await sharp(monochromeBuffer).stats();
+
+        // Check if any non-transparent pixels exist (alpha channel mean > 0)
+        const alphaMean = stats.channels[3].mean;
+        const hasContent = alphaMean > 0;
+
+        if (!hasContent) {
+            throw new Error('Monochrome layer validation failed: Layer is completely blank (no visible content). ' +
+                           'Alpha channel mean is 0, indicating all pixels are transparent. ' +
+                           'This would cause themed icons to appear invisible in Material You launchers.');
+        }
+
+        printMsg(GREEN, `  ✓ Content validation passed: Alpha channel mean = ${alphaMean.toFixed(2)}`);
+
+        // Verify white color for non-transparent pixels (Material You requirement)
+        const rMean = stats.channels[0].mean;
+        const gMean = stats.channels[1].mean;
+        const bMean = stats.channels[2].mean;
+        const isWhite = rMean > 250 && gMean > 250 && bMean > 250;
+
+        if (!isWhite) {
+            printMsg(YELLOW, `  ⚠ Warning: Monochrome layer may not be pure white (R:${rMean.toFixed(0)}, G:${gMean.toFixed(0)}, B:${bMean.toFixed(0)}). ` +
+                            `Material You themed icons require white (#FFFFFF) for proper tinting. ` +
+                            `Current color may affect how launchers apply theme colors.`);
+        } else {
+            printMsg(GREEN, `  ✓ Color validation passed: White silhouette (R:${rMean.toFixed(0)}, G:${gMean.toFixed(0)}, B:${bMean.toFixed(0)})`);
+        }
+
+        // Calculate opacity percentage for non-transparent pixels
+        // Extract non-zero alpha pixels and calculate mean opacity
+        const { data, info } = await sharp(monochromeBuffer)
+            .raw()
+            .toBuffer({ resolveWithObject: true });
+
+        let nonTransparentCount = 0;
+        let opacitySum = 0;
+
+        // Sample every 10th pixel for performance (RGBA = 4 bytes per pixel)
+        for (let i = 0; i < data.length; i += 40) {  // Jump 10 pixels (10 * 4 bytes)
+            const alpha = data[i + 3];
+            if (alpha > 0) {
+                nonTransparentCount++;
+                opacitySum += alpha;
+            }
+        }
+
+        const averageOpacity = nonTransparentCount > 0 ? (opacitySum / nonTransparentCount) / 255 : 0;
+        const opacityPercent = (averageOpacity * 100).toFixed(1);
+
+        if (averageOpacity < 0.95) {
+            printMsg(YELLOW, `  ⚠ Warning: Monochrome layer opacity is ${opacityPercent}% (target: >95%). ` +
+                            `Low opacity may cause faint or barely visible themed icons. ` +
+                            `Non-transparent pixels should be fully opaque (alpha: 255).`);
+        } else {
+            printMsg(GREEN, `  ✓ Opacity validation passed: ${opacityPercent}% average opacity for logo pixels`);
         }
 
         printMsg(GREEN, `✓ Android adaptive icon monochrome layer generated successfully (${fileSizeKB}KB, ${hasAlpha ? 'RGBA' : 'RGB'} mode)`);
@@ -2999,7 +3062,7 @@ async function runTests(): Promise<TestResults> {
 
     // Test 1: SVG validation
     try {
-        const isValid = await validateSource('assets/logo/trendankaralogo.svg');
+        const isValid = await validateSource('assets/logo/TrendAnkara_Logo.svg');
         results.tests.push({ name: 'SVG source validation', passed: isValid });
         if (isValid) results.passed++; else results.failed++;
         printMsg(isValid ? GREEN : RED, `${isValid ? '✓' : '✗'} SVG source validation`);
@@ -3011,7 +3074,7 @@ async function runTests(): Promise<TestResults> {
 
     // Test 2: SVG parsing
     try {
-        const svgData = await parseSVG('assets/logo/trendankaralogo.svg');
+        const svgData = await parseSVG('assets/logo/TrendAnkara_Logo.svg');
         const hasColors = svgData.colors.hasRed || svgData.colors.hasBlack || svgData.colors.hasWhite;
         results.tests.push({ name: 'SVG parsing and color extraction', passed: hasColors });
         if (hasColors) results.passed++; else results.failed++;
@@ -3024,7 +3087,7 @@ async function runTests(): Promise<TestResults> {
 
     // Test 3: Icon generation (memory only)
     try {
-        const svgBuffer = await fs.promises.readFile('assets/logo/trendankaralogo.svg');
+        const svgBuffer = await fs.promises.readFile('assets/logo/TrendAnkara_Logo.svg');
         const testIcon = await generateIOSLightIcon(svgBuffer);
         const isValid = testIcon.length > 0;
         results.tests.push({ name: 'iOS icon generation', passed: isValid });
@@ -3080,7 +3143,7 @@ function setupCLI(): {
         .name('generate-icons')
         .description('Generate adaptive app icons for iOS 18 and Android 13+ from SVG source')
         .version('1.0.0')
-        .option('-s, --source <path>', 'Path to source SVG file', 'assets/logo/trendankaralogo.svg')
+        .option('-s, --source <path>', 'Path to source SVG file', 'assets/logo/TrendAnkara_Logo.svg')
         .option('-d, --dry-run', 'Test run without writing files', false)
         .option('-v, --verbose', 'Enable verbose output for debugging', false)
         .option('-t, --test', 'Run validation tests', false)
@@ -3091,7 +3154,7 @@ function setupCLI(): {
         .addHelpText('after', `
 Examples:
   $ npm run generate-icons
-    Generate icons using default source (assets/logo/trendankaralogo.svg)
+    Generate icons using default source (assets/logo/TrendAnkara_Logo.svg)
 
   $ npm run generate-icons -- --source path/to/icon.svg
     Generate icons from a custom SVG file

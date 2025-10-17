@@ -306,10 +306,11 @@ export class DeepLinkHelper {
    * Handle incoming deep link
    */
   static handleDeepLink(url: string): boolean {
-    // Handle TrackPlayer notification clicks - just bring app to foreground
-    if (url.startsWith('trackplayer://')) {
+    // Handle TrackPlayer notification clicks - just bring app to foreground without navigation
+    // to avoid reloading the page and stopping the player
+    if (url.startsWith('trackplayer://') || url.includes('notification.click')) {
       console.log('[DeepLink] TrackPlayer notification clicked, app brought to foreground');
-      return true; // Return true to indicate it was handled (no navigation needed)
+      return true;
     }
 
     const parsed = this.parseUrl(url);

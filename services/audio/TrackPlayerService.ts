@@ -337,12 +337,18 @@ export class TrackPlayerService {
       });
 
       // Update metadata - NO PLAYBACK INTERRUPTION!
-      // IMPORTANT: Include artwork to prevent it from being cleared
-      await TrackPlayer.updateMetadataForTrack(currentTrackIndex, {
+      // IMPORTANT: ALWAYS include artwork to prevent Android from clearing it
+      const updateData: any = {
         title: titleString,
         artist: artistString,
-        ...(this.currentArtwork && { artwork: this.currentArtwork }),
-      });
+      };
+
+      // Always add artwork if available - Android needs this explicitly on every update
+      if (this.currentArtwork) {
+        updateData.artwork = this.currentArtwork;
+      }
+
+      await TrackPlayer.updateMetadataForTrack(currentTrackIndex, updateData);
 
       // Update tracking variables
       this.lastMetadataTitle = fullTitle;

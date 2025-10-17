@@ -1,0 +1,1 @@
+ echo ✅ Started logcat monitoring in background (PID: $(cat .claude/bugs/power-consumption-investigation/profiling-results/logcat-pid.txt))
