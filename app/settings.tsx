@@ -14,6 +14,7 @@ import {
   TouchableOpacity,
   Alert,
   Platform,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -113,6 +114,23 @@ export default function SettingsScreen() {
       Alert.alert('Test Bildirimi', 'Test bildirimi gönderildi!');
     } catch (error) {
       Alert.alert('Hata', 'Test bildirimi gönderilemedi.');
+    }
+  };
+
+  /**
+   * Handle privacy policy link
+   */
+  const handleOpenPrivacyPolicy = async () => {
+    const privacyPolicyUrl = 'https://trendankara.com/privacy-policy';
+    try {
+      const canOpen = await Linking.canOpenURL(privacyPolicyUrl);
+      if (canOpen) {
+        await Linking.openURL(privacyPolicyUrl);
+      } else {
+        Alert.alert('Hata', 'Gizlilik politikası açılamadı. Lütfen daha sonra tekrar deneyin.');
+      }
+    } catch (error) {
+      Alert.alert('Hata', 'Gizlilik politikası açılamadı.');
     }
   };
 
@@ -307,6 +325,14 @@ export default function SettingsScreen() {
           subtitle: '1.0.0',
           type: 'info',
           icon: 'information-circle',
+        },
+        {
+          id: 'privacy_policy',
+          title: 'Gizlilik Politikası',
+          subtitle: 'Veri toplama ve kullanım politikamız',
+          type: 'action',
+          icon: 'shield-checkmark',
+          onPress: handleOpenPrivacyPolicy,
         },
         {
           id: 'about',

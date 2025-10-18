@@ -9,23 +9,16 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "description": "TrendAnkara - İstanbul'un En Trend Radyosu. Canlı yayın, haberler, anketler ve daha fazlası.",
-    "keywords": [
-      "radyo",
-      "müzik",
-      "haber",
-      "ankara",
-      "canlı yayın"
-    ],
-    "privacy": "public",
+    "privacyPolicyUrl": "https://trendankara.com/privacy-policy",
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
         "UIBackgroundModes": [
           "audio"
         ],
-        "NSMicrophoneUsageDescription": "This app may require microphone access for audio features.",
-        "NSCameraUsageDescription": "This app may require camera access for sharing features.",
-        "NSPhotoLibraryUsageDescription": "This app may require photo library access for sharing features.",
+        "NSMicrophoneUsageDescription": "TrendAnkara, haber ve içeriklerinizi paylaşmak için mikrofon erişimine ihtiyaç duyar.",
+        "NSCameraUsageDescription": "TrendAnkara, canlı yayın veya etkinlik fotoğraflarını paylaşmanız için kamera erişimine ihtiyaç duyar.",
+        "NSPhotoLibraryUsageDescription": "TrendAnkara, haber ve içeriklerinizi paylaşmak için fotoğraf kütüphanenizden resim seçmenize olanak tanır.",
         "ITSAppUsesNonExemptEncryption": false,
         "UILaunchStoryboardName": "SplashScreen",
         "UIStatusBarStyle": "UIStatusBarStyleDefault"
@@ -91,7 +84,8 @@
           "supportsBackgroundPlayback": true,
           "supportsPictureInPicture": false
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -126,7 +120,10 @@
         "screens": {
           "(tabs)": {
             "screens": {
-              "index": ["", "notification.click"],
+              "index": [
+                "",
+                "notification.click"
+              ],
               "polls": "polls",
               "news": "news",
               "sponsors": "sponsors"
