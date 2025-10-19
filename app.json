@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "description": "TrendAnkara - İstanbul'un En Trend Radyosu. Canlı yayın, haberler, anketler ve daha fazlası.",
-    "privacyPolicyUrl": "https://trendankara.com/privacy-policy",
+    "privacyPolicyUrl": "https://trendankara.com/gizlilik-politikasi",
     "ios": {
       "supportsTablet": true,
       "infoPlist": {

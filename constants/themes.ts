@@ -8,10 +8,10 @@ import { ColorSchemeName } from 'react-native';
 
 // Color palette
 export const Colors = {
-  // Brand colors
-  primary: '#FF6B35',
-  primaryDark: '#E5562F',
-  primaryLight: '#FF8A5C',
+  // Brand colors - PURE RED
+  primary: '#E60012',      // Vibrant pure red
+  primaryDark: '#B8000E',  // Darker red
+  primaryLight: '#FF1A2E', // Lighter red
 
   secondary: '#2E86AB',
   secondaryDark: '#1E5F7A',

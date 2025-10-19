@@ -5,26 +5,17 @@
  */
 
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createMigrate, PersistConfig } from 'redux-persist';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MobileSettings } from '@/types/api';
 import SettingsService from '@/services/settings/SettingsService';
 
-// Theme configuration
-export type ThemeMode = 'light' | 'dark' | 'system';
-
-// Audio quality options
-export type AudioQuality = 'low' | 'medium' | 'high';
-
 // Local user preferences (stored in Redux)
 interface UserPreferences {
-  theme: ThemeMode;
-  audioQuality: AudioQuality;
-  autoPlayOnStart: boolean;
+  useSystemTheme: boolean;
+  isDarkMode: boolean;
   backgroundPlayEnabled: boolean;
-  notificationsEnabled: boolean;
-  dataUsageWarning: boolean;
-  onboardingCompleted: boolean;
-  cacheSize: number; // in MB
-  clearCacheOnClose: boolean;
+  autoPlayOnStart: boolean;
 }
 
 // Notification settings
@@ -67,15 +58,10 @@ interface SettingsState {
 const initialState: SettingsState = {
   remoteSettings: null,
   userPreferences: {
-    theme: 'system',
-    audioQuality: 'high',
-    autoPlayOnStart: false,
+    useSystemTheme: true,
+    isDarkMode: false,
     backgroundPlayEnabled: true,
-    notificationsEnabled: true,
-    dataUsageWarning: true,
-    onboardingCompleted: false,
-    cacheSize: 100, // 100 MB default
-    clearCacheOnClose: false,
+    autoPlayOnStart: false,
   },
   notifications: {
     enabled: true,
@@ -169,42 +155,25 @@ const settingsSlice = createSlice({
   initialState,
   reducers: {
     // User preferences
-    setTheme: (state, action: PayloadAction<ThemeMode>) => {
-      state.userPreferences.theme = action.payload;
+    setUseSystemTheme: (state, action: PayloadAction<boolean>) => {
+      state.userPreferences.useSystemTheme = action.payload;
     },
 
-    setAudioQuality: (state, action: PayloadAction<AudioQuality>) => {
-      state.userPreferences.audioQuality = action.payload;
-    },
-
-    setAutoPlayOnStart: (state, action: PayloadAction<boolean>) => {
-      state.userPreferences.autoPlayOnStart = action.payload;
+    setIsDarkMode: (state, action: PayloadAction<boolean>) => {
+      state.userPreferences.isDarkMode = action.payload;
     },
 
     setBackgroundPlayEnabled: (state, action: PayloadAction<boolean>) => {
       state.userPreferences.backgroundPlayEnabled = action.payload;
     },
 
-    setDataUsageWarning: (state, action: PayloadAction<boolean>) => {
-      state.userPreferences.dataUsageWarning = action.payload;
-    },
-
-    setOnboardingCompleted: (state, action: PayloadAction<boolean>) => {
-      state.userPreferences.onboardingCompleted = action.payload;
-    },
-
-    setCacheSize: (state, action: PayloadAction<number>) => {
-      state.userPreferences.cacheSize = Math.max(50, Math.min(500, action.payload));
-    },
-
-    setClearCacheOnClose: (state, action: PayloadAction<boolean>) => {
-      state.userPreferences.clearCacheOnClose = action.payload;
+    setAutoPlayOnStart: (state, action: PayloadAction<boolean>) => {
+      state.userPreferences.autoPlayOnStart = action.payload;
     },
 
     // Notification settings
     setNotificationsEnabled: (state, action: PayloadAction<boolean>) => {
       state.notifications.enabled = action.payload;
-      state.userPreferences.notificationsEnabled = action.payload;
     },
 
     setNotificationSetting: (
@@ -314,14 +283,10 @@ const settingsSlice = createSlice({
 
 // Export actions
 export const {
-  setTheme,
-  setAudioQuality,
-  setAutoPlayOnStart,
+  setUseSystemTheme,
+  setIsDarkMode,
   setBackgroundPlayEnabled,
-  setDataUsageWarning,
-  setOnboardingCompleted,
-  setCacheSize,
-  setClearCacheOnClose,
+  setAutoPlayOnStart,
   setNotificationsEnabled,
   setNotificationSetting,
   updateNotificationSettings,
@@ -344,6 +309,95 @@ export const selectIsSettingsLoaded = (state: { settings: SettingsState }) => st
 export default settingsSlice.reducer;
 
 /**
+ * Redux Persist Migration Configuration
+ * Handles backward compatibility with old settings structure
+ */
+
+// Old settings state structure (for migration reference)
+interface LegacySettingsState {
+  userPreferences?: {
+    theme?: 'light' | 'dark' | 'system';
+    backgroundPlayEnabled?: boolean;
+    autoPlayOnStart?: boolean;
+    audioQuality?: string;
+    notificationsEnabled?: boolean;
+    cacheSize?: number;
+  };
+  // ... other legacy fields
+}
+
+// Migration functions
+const migrations = {
+  // Version 1: Transform old theme format to new useSystemTheme/isDarkMode format
+  1: (state: unknown): SettingsState => {
+    // Type guard and safe casting
+    const legacyState = state as LegacySettingsState;
+    const oldPreferences = legacyState.userPreferences || {};
+
+    // Map old theme setting to new format
+    let useSystemTheme = true;
+    let isDarkMode = false;
+
+    if (oldPreferences.theme) {
+      switch (oldPreferences.theme) {
+        case 'system':
+          useSystemTheme = true;
+          isDarkMode = false; // Will be determined by system
+          break;
+        case 'dark':
+          useSystemTheme = false;
+          isDarkMode = true;
+          break;
+        case 'light':
+          useSystemTheme = false;
+          isDarkMode = false;
+          break;
+        default:
+          // Unknown theme, use defaults
+          useSystemTheme = true;
+          isDarkMode = false;
+      }
+    }
+
+    // Create new state structure
+    const newState: SettingsState = {
+      ...initialState,
+      userPreferences: {
+        useSystemTheme,
+        isDarkMode,
+        // Migrate existing values or use defaults
+        backgroundPlayEnabled: oldPreferences.backgroundPlayEnabled ?? initialState.userPreferences.backgroundPlayEnabled,
+        autoPlayOnStart: oldPreferences.autoPlayOnStart ?? initialState.userPreferences.autoPlayOnStart,
+      },
+      // Preserve notification settings if they exist in old structure
+      notifications: oldPreferences.notificationsEnabled !== undefined
+        ? {
+            ...initialState.notifications,
+            enabled: oldPreferences.notificationsEnabled,
+          }
+        : initialState.notifications,
+      // Preserve other state fields if they exist
+      remoteSettings: (legacyState as unknown as SettingsState).remoteSettings || null,
+      isLoading: (legacyState as unknown as SettingsState).isLoading || false,
+      isLoaded: (legacyState as unknown as SettingsState).isLoaded || false,
+      error: (legacyState as unknown as SettingsState).error || null,
+      lastSynced: (legacyState as unknown as SettingsState).lastSynced || null,
+      features: (legacyState as unknown as SettingsState).features || initialState.features,
+    };
+
+    return newState;
+  },
+};
+
+// Export persist configuration
+export const settingsPersistConfig: PersistConfig<SettingsState> = {
+  key: 'settings',
+  version: 1,
+  storage: AsyncStorage,
+  migrate: createMigrate(migrations, { debug: __DEV__ }),
+};
+
+/**
  * Settings Slice Features:
  *
  * Remote Settings:
@@ -353,11 +407,10 @@ export default settingsSlice.reducer;
  * - Maintenance mode detection
  *
  * User Preferences:
- * - Theme selection (light/dark/system)
- * - Audio quality settings
- * - Playback preferences
- * - Cache management
- * - Onboarding state
+ * - System theme preference (useSystemTheme)
+ * - Manual dark/light mode toggle (isDarkMode)
+ * - Background playback control (backgroundPlayEnabled)
+ * - Autoplay on launch (autoPlayOnStart)
  *
  * Notifications:
  * - Global notification toggle
@@ -369,4 +422,10 @@ export default settingsSlice.reducer;
  * - Graceful degradation on errors
  * - Local-first approach with sync
  * - Development/production variants
+ *
+ * Migration:
+ * - Version 1: Transforms old theme format (light/dark/system) to new useSystemTheme/isDarkMode structure
+ * - Preserves backgroundPlayEnabled and autoPlayOnStart settings
+ * - Removes deprecated settings (audioQuality, cacheSize)
+ * - No data loss for core functionality
  */

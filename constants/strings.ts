@@ -42,33 +42,53 @@ export const Strings = {
   // Settings screen
   settings: {
     title: 'Ayarlar',
-    general: 'Genel',
-    audio: 'Ses',
-    playback: 'Oynatma',
-    notifications: 'Bildirimler',
-    about: 'Hakkında',
+
+    // Section headers
+    themeSection: 'TEMA',
+    playbackSection: 'OYNATMA',
+    legalSection: 'YASAL',
+
+    // Theme setting
     theme: 'Tema',
-    language: 'Dil',
-    darkMode: 'Karanlık Mod',
+    themeDescription: 'Uygulamanın görünümünü özelleştirin',
     lightMode: 'Aydınlık Mod',
-    autoMode: 'Otomatik',
-    audioQuality: 'Ses Kalitesi',
-    highQuality: 'Yüksek Kalite',
-    standardQuality: 'Standart Kalite',
-    lowQuality: 'Düşük Kalite',
-    enableNotifications: 'Bildirimleri Etkinleştir',
-    pushNotifications: 'Anlık Bildirimler',
-    emailNotifications: 'E-posta Bildirimleri',
-    version: 'Sürüm',
-    buildNumber: 'Yapı Numarası',
+    darkMode: 'Karanlık Mod',
+    systemMode: 'Sistem Ayarı',
+    useSystemSettings: 'Sistem Ayarlarını Kullan',
+
+    // Background playback setting
+    backgroundPlayback: 'Arka Planda Çal',
+    backgroundPlaybackDescription: 'Uygulama kapalıyken müzik çalmaya devam et',
+
+    // Autoplay setting
+    autoplay: 'Otomatik Başlat',
+    autoplayDescription: 'Uygulama açıldığında otomatik olarak çalmaya başla',
+
+    // Legal section
     privacyPolicy: 'Gizlilik Politikası',
-    termsOfService: 'Kullanım Şartları',
-    contact: 'İletişim',
-    feedback: 'Geri Bildirim',
-    rateApp: 'Uygulamayı Değerlendir',
-    clearCache: 'Önbelleği Temizle',
-    logout: 'Çıkış Yap',
-    deleteAccount: 'Hesabı Sil',
+    privacyPolicyDescription: 'Veri koruma ve gizlilik',
+    termsOfService: 'Kullanım Koşulları',
+    termsOfServiceDescription: 'Hizmet kullanım koşulları',
+    imprint: 'Künye',
+    imprintDescription: 'Yayın bilgileri ve yasal künye',
+    about: 'Hakkında',
+    aboutDescription: 'Uygulama bilgileri ve iletişim',
+
+    // Restore defaults
+    restoreDefaults: 'Varsayılana Dön',
+    restoreDefaultsDescription: 'Tüm ayarları fabrika varsayılanlarına sıfırla',
+
+    // Confirmation dialog
+    confirmRestoreTitle: 'Ayarları Sıfırla',
+    confirmRestoreMessage: 'Tüm ayarlar varsayılan değerlere sıfırlanacak. Devam etmek istiyor musunuz?',
+    confirmRestoreButton: 'Sıfırla',
+
+    // Success message
+    defaultsRestored: 'Ayarlar varsayılan değerlere sıfırlandı',
+
+    // Error messages for legal links
+    linkError: 'Bağlantı Açılamadı',
+    linkErrorMessage: 'Sayfa açılırken bir hata oluştu. Lütfen tekrar deneyiniz.',
   },
 
   // Common UI elements

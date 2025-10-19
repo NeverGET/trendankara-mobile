@@ -8,7 +8,10 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { useColorScheme as useNativeColorScheme, ColorSchemeName } from 'react-native';
 import { Theme, LightTheme, DarkTheme, getTheme } from '@/constants/themes';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
-import { setTheme, type ThemeMode } from '@/store/slices/settingsSlice';
+import { setUseSystemTheme, setIsDarkMode } from '@/store/slices/settingsSlice';
+
+// Theme mode type for backward compatibility
+type ThemeMode = 'light' | 'dark' | 'system';
 
 // Theme context type
 interface ThemeContextType {
@@ -32,50 +35,69 @@ interface ThemeProviderProps {
 
 /**
  * Theme Provider Component
+ * Updated to use new Redux state structure (useSystemTheme + isDarkMode)
  */
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const dispatch = useAppDispatch();
   const systemColorScheme = useNativeColorScheme();
-  const themeMode = useAppSelector(state => state.settings.userPreferences.theme);
+
+  // Use new Redux state structure
+  const { useSystemTheme, isDarkMode } = useAppSelector(
+    state => state.settings.userPreferences
+  );
 
   const [effectiveColorScheme, setEffectiveColorScheme] = useState<ColorSchemeName>(() => {
-    if (themeMode === 'system') {
+    if (useSystemTheme) {
       return systemColorScheme;
     }
-    return themeMode;
+    return isDarkMode ? 'dark' : 'light';
   });
 
-  // Update effective color scheme when theme mode or system theme changes
+  // Update effective color scheme when settings or system theme changes
   useEffect(() => {
-    if (themeMode === 'system') {
+    if (useSystemTheme) {
       setEffectiveColorScheme(systemColorScheme);
     } else {
-      setEffectiveColorScheme(themeMode);
+      setEffectiveColorScheme(isDarkMode ? 'dark' : 'light');
     }
-  }, [themeMode, systemColorScheme]);
+  }, [useSystemTheme, isDarkMode, systemColorScheme]);
 
   // Get current theme based on effective color scheme
   const theme = getTheme(effectiveColorScheme);
 
-  // Theme control functions
+  // Theme control functions (backward compatible)
   const setThemeMode = (mode: ThemeMode) => {
-    dispatch(setTheme(mode));
+    if (mode === 'system') {
+      dispatch(setUseSystemTheme(true));
+    } else if (mode === 'dark') {
+      dispatch(setUseSystemTheme(false));
+      dispatch(setIsDarkMode(true));
+    } else {
+      dispatch(setUseSystemTheme(false));
+      dispatch(setIsDarkMode(false));
+    }
   };
 
   const toggleTheme = () => {
-    if (themeMode === 'light') {
+    if (!useSystemTheme && !isDarkMode) {
+      // light → dark
       setThemeMode('dark');
-    } else if (themeMode === 'dark') {
+    } else if (!useSystemTheme && isDarkMode) {
+      // dark → system
       setThemeMode('system');
     } else {
+      // system → light
       setThemeMode('light');
     }
   };
 
   // Theme state helpers
-  const isDark = effectiveColorScheme === 'dark';
+  const isDarkBool = effectiveColorScheme === 'dark';
   const isLight = effectiveColorScheme === 'light';
-  const isSystem = themeMode === 'system';
+  const isSystem = useSystemTheme;
+
+  // Compute themeMode for backward compatibility
+  const themeMode: ThemeMode = useSystemTheme ? 'system' : (isDarkMode ? 'dark' : 'light');
 
   const contextValue: ThemeContextType = {
     theme,
@@ -83,7 +105,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     themeMode,
     setThemeMode,
     toggleTheme,
-    isDark,
+    isDark: isDarkBool,
     isLight,
     isSystem,
   };

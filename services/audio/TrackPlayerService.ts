@@ -85,6 +85,18 @@ export class TrackPlayerService {
       this.updatePlayerState('stopped');
       console.log('[TrackPlayerService] Initialized successfully');
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+
+      // If already initialized from previous session, treat as success
+      if (errorMessage.includes('already been initialized')) {
+        console.log('[TrackPlayerService] Already initialized from previous session');
+        this.isInitialized = true;
+        this.updatePlayerState('stopped');
+        // Note: Event listeners are already set up from previous session
+        return;
+      }
+
+      // Real initialization error
       console.error('[TrackPlayerService] Failed to initialize:', error);
       this.isInitialized = false;
       this.notifyError(new Error('Failed to initialize player'));

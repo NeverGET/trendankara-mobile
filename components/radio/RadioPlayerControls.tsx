@@ -92,31 +92,52 @@ export const RadioPlayerControls: React.FC<RadioPlayerControlsProps> = ({
   }, []);
 
   const initializeAudio = async () => {
+    let initSuccess = false;
+
     try {
       setIsInitializing(true);
 
       // Initialize the selected audio service
       await audioService.initialize();
-
-      // Subscribe to state changes
-      audioService.addStateListener((state) => {
-        setPlayerState(state);
-      });
-
-      // Subscribe to errors
-      audioService.addErrorListener((error) => {
-        console.error('Player error:', error);
-        onError?.(error);
-      });
-
-      setIsInitializing(false);
-
-      const serviceName = FEATURES.USE_TRACK_PLAYER ? 'TrackPlayerService' : 'VideoPlayerService';
-      console.log(`[RadioPlayerControls] ${serviceName} initialized with background playback`);
+      initSuccess = true;
     } catch (error) {
-      console.error('Failed to initialize audio:', error);
-      setIsInitializing(false);
-      onError?.(error as Error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+
+      // If already initialized from previous session, treat as success
+      if (errorMessage.includes('already been initialized')) {
+        console.log('[RadioPlayerControls] Service already initialized from previous session, continuing...');
+        initSuccess = true;
+      } else {
+        // Real initialization error - show to user
+        console.error('Failed to initialize audio:', error);
+        setIsInitializing(false);
+        onError?.(error as Error);
+        return;
+      }
+    }
+
+    // Always register listeners if initialization succeeded (even if it was already initialized)
+    if (initSuccess) {
+      try {
+        // Subscribe to state changes
+        audioService.addStateListener((state) => {
+          setPlayerState(state);
+        });
+
+        // Subscribe to errors
+        audioService.addErrorListener((error) => {
+          console.error('Player error:', error);
+          onError?.(error);
+        });
+
+        setIsInitializing(false);
+
+        const serviceName = FEATURES.USE_TRACK_PLAYER ? 'TrackPlayerService' : 'VideoPlayerService';
+        console.log(`[RadioPlayerControls] ${serviceName} initialized with background playback`);
+      } catch (error) {
+        console.error('Failed to register listeners:', error);
+        setIsInitializing(false);
+      }
     }
   };
 
@@ -135,6 +156,12 @@ export const RadioPlayerControls: React.FC<RadioPlayerControlsProps> = ({
           useNativeDriver: true,
         }),
       ]).start();
+
+      // Wait if service is still initializing
+      if (isInitializing) {
+        console.log('[RadioPlayerControls] Service still initializing, please wait...');
+        return;
+      }
 
       // Get the actual current state from the player service
       const actualPlayerState = audioService.getState();

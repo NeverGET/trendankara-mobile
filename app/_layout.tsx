@@ -4,7 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { LightNavigationTheme, DarkNavigationTheme } from '@/constants/navigationTheme';
@@ -15,13 +15,35 @@ import { ThemeProvider as CustomThemeProvider } from '@/contexts/ThemeContext';
 import { store, persistor } from '@/store';
 import apiInitService from '@/services/api/initialization';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { useAppSelector } from '@/store/hooks';
 
 export const unstable_settings = {
   anchor: '(tabs)',
 };
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
+/**
+ * App content component that uses Redux hooks
+ * Separated from RootLayout to access Redux state after Provider is mounted
+ */
+function AppContent() {
+  const systemColorScheme = useColorScheme();
+
+  // Subscribe to theme settings from Redux state
+  const { useSystemTheme, isDarkMode } = useAppSelector(
+    (state) => state.settings.userPreferences
+  );
+
+  // Calculate current theme based on settings
+  // AC 1.2, 1.4, 1.5: When useSystemTheme is ON, follow device theme
+  // AC 2.4, 2.5: When useSystemTheme is OFF, use isDarkMode setting
+  const currentTheme = useMemo(() => {
+    if (useSystemTheme) {
+      // Follow system theme preference
+      return systemColorScheme === 'dark' ? 'dark' : 'light';
+    }
+    // Use manual dark/light mode setting
+    return isDarkMode ? 'dark' : 'light';
+  }, [useSystemTheme, isDarkMode, systemColorScheme]);
 
   // Initialize API service on app startup
   useEffect(() => {
@@ -30,16 +52,11 @@ export default function RootLayout() {
         // Temporarily clear cache for cards to test image loading
         if (__DEV__) {
           await apiInitService.clearCache();
-          console.log('🗑️ Cache cleared for testing');
         }
 
-        console.log('Initializing app services...');
         const result = await apiInitService.initialize();
 
-        if (result.success) {
-          console.log(`App initialized successfully in ${result.duration}ms`);
-          console.log(`Loaded endpoints: ${result.loadedEndpoints.join(', ')}`);
-        } else {
+        if (!result.success) {
           console.warn('Some endpoints failed to load:', result.failedEndpoints);
         }
       } catch (error) {
@@ -57,8 +74,8 @@ export default function RootLayout() {
 
   // Setup deep linking
   useDeepLinking({
-    onDeepLink: (event) => {
-      console.log('Deep link received in RootLayout:', event);
+    onDeepLink: () => {
+      // Deep link handling
     },
     onError: (error, url) => {
       console.error('Deep link error in RootLayout:', error, url);
@@ -67,23 +84,29 @@ export default function RootLayout() {
   });
 
   return (
+    <CustomThemeProvider>
+      <ExpoVideoPlayerProvider>
+        <ThemeProvider value={currentTheme === 'dark' ? DarkNavigationTheme : LightNavigationTheme}>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="modal" options={{ presentation: 'modal', title: Strings.common.modal }} />
+            <Stack.Screen name="settings" options={{ headerShown: false }} />
+            <Stack.Screen name="about" options={{ headerShown: false }} />
+            <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+          </Stack>
+          <StatusBar style={currentTheme === 'dark' ? 'light' : 'dark'} />
+        </ThemeProvider>
+      </ExpoVideoPlayerProvider>
+    </CustomThemeProvider>
+  );
+}
+
+export default function RootLayout() {
+  return (
     <ErrorBoundary level="app" showErrorDetails={__DEV__}>
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
-          <CustomThemeProvider>
-            <ExpoVideoPlayerProvider>
-              <ThemeProvider value={colorScheme === 'dark' ? DarkNavigationTheme : LightNavigationTheme}>
-                <Stack>
-                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                  <Stack.Screen name="modal" options={{ presentation: 'modal', title: Strings.common.modal }} />
-                  <Stack.Screen name="settings" options={{ headerShown: false }} />
-                  <Stack.Screen name="about" options={{ headerShown: false }} />
-                  <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-                </Stack>
-                <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-              </ThemeProvider>
-            </ExpoVideoPlayerProvider>
-          </CustomThemeProvider>
+          <AppContent />
         </PersistGate>
       </Provider>
     </ErrorBoundary>
