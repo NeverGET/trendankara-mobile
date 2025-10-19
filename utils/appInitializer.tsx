@@ -4,6 +4,7 @@
  * Centralized initialization for all app services and configurations
  */
 
+import React from 'react';
 import { performanceMonitor } from './performance';
 import { crashReporting } from '../services/crashReporting';
 import { appReview, ReviewEvents } from './appReview';
@@ -314,4 +315,3 @@ export const withAppInitialization = <P extends object>(
 };
 
 export type { AppInitConfig };
-export { React } from 'react';

@@ -16,8 +16,6 @@
         "UIBackgroundModes": [
           "audio"
         ],
-        "NSMicrophoneUsageDescription": "TrendAnkara, haber ve içeriklerinizi paylaşmak için mikrofon erişimine ihtiyaç duyar.",
-        "NSCameraUsageDescription": "TrendAnkara, canlı yayın veya etkinlik fotoğraflarını paylaşmanız için kamera erişimine ihtiyaç duyar.",
         "NSPhotoLibraryUsageDescription": "TrendAnkara, haber ve içeriklerinizi paylaşmak için fotoğraf kütüphanenizden resim seçmenize olanak tanır.",
         "ITSAppUsesNonExemptEncryption": false,
         "UILaunchStoryboardName": "SplashScreen",

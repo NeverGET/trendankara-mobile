@@ -5,6 +5,7 @@
  * Integrates with Expo's StoreReview API for native review flows.
  */
 
+import React from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as StoreReview from 'expo-store-review';
 import { Platform } from 'react-native';
@@ -113,7 +114,7 @@ class AppReviewService {
       await this.saveEvent(event);
 
       if (__DEV__) {
-        if (__DEV__) { console.log(`Review event recorded: ${eventName} (weight: ${weight})`);
+        console.log(`Review event recorded: ${eventName} (weight: ${weight})`);
       }
     } catch (error) {
       console.error('Failed to record review event:', error);
@@ -463,4 +464,3 @@ export const withReviewTracking = <P extends object>(
   });
 };
 
-export { React } from 'react';

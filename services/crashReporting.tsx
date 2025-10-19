@@ -5,6 +5,7 @@
  * This is a basic implementation that can be extended with Sentry, Bugsnag, or similar services.
  */
 
+import React from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
@@ -439,4 +440,3 @@ export const useCrashReporting = () => {
   };
 };
 
-export { React } from 'react';

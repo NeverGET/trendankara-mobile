@@ -4,8 +4,8 @@
  * Provides smooth splash screen transitions and loading state management
  */
 
+import React, { useCallback, useEffect, useState } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
-import { useCallback, useEffect, useState } from 'react';
 
 interface SplashScreenConfig {
   minimumDisplayTime?: number;
@@ -286,4 +286,3 @@ export const createSmoothTransition = (onTransitionComplete?: () => void) => {
   };
 };
 
-export { React } from 'react';

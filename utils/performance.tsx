@@ -1,3 +1,4 @@
+import React from 'react';
 import { InteractionManager, PixelRatio } from 'react-native';
 import * as Device from 'expo-device';
 
@@ -351,4 +352,3 @@ export const trackNavigation = (screenName: string, startTime: number) => {
 export const performanceMonitor = PerformanceMonitor.getInstance();
 
 // Export React for the hook
-export { React } from 'react';
