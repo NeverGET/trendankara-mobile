@@ -63,7 +63,7 @@ class PerformanceMonitor {
     // Log device info for context
     this.logDeviceInfo();
 
-    console.log('🚀 Performance monitoring started');
+    if (__DEV__) { console.log('Performance monitoring started'); }
   }
 
   /**
@@ -79,7 +79,7 @@ class PerformanceMonitor {
       this.memoryCheckInterval = null;
     }
 
-    console.log('⏹️ Performance monitoring stopped');
+    if (__DEV__) { console.log('Performance monitoring stopped'); }
   }
 
   /**
@@ -101,7 +101,7 @@ class PerformanceMonitor {
     }
 
     if (__DEV__) {
-      console.log(`📊 Metric [${name}]: ${value}`, metadata);
+      console.log(`Metric [${name}]: ${value}`, metadata);
     }
   }
 
@@ -206,7 +206,7 @@ class PerformanceMonitor {
         if (memoryUsage.usedJSHeapSize && memoryUsage.jsHeapSizeLimit) {
           const usagePercent = (memoryUsage.usedJSHeapSize / memoryUsage.jsHeapSizeLimit) * 100;
           if (usagePercent > 80) {
-            console.warn(`⚠️ High memory usage: ${usagePercent.toFixed(1)}%`);
+            console.warn(`High memory usage: ${usagePercent.toFixed(1)}%`);
           }
         }
       }

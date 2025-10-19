@@ -26,14 +26,20 @@ class PollsService {
     if (useCache) {
       const cached = await apiCache.get<Poll[]>(cacheKey);
       if (cached) {
-        console.log('🔍 FOUND CACHED POLLS - VALIDATING...');
+        if (__DEV__) {
+          console.log('FOUND CACHED POLLS - VALIDATING...');
+        }
         // Validate and normalize cached data
         const validCached = this.validateAndNormalizePolls(cached);
         if (validCached.length > 0) {
-          console.log('✅ Cached polls validated successfully, returning normalized data');
+          if (__DEV__) {
+            console.log('Cached polls validated successfully, returning normalized data');
+          }
           return validCached;
         } else {
-          console.log('❌ CACHED POLLS INVALID - CLEARING CACHE AND FETCHING FRESH DATA');
+          if (__DEV__) {
+            console.log('CACHED POLLS INVALID - CLEARING CACHE AND FETCHING FRESH DATA');
+          }
           await apiCache.remove(cacheKey);
         }
       }
@@ -186,9 +192,13 @@ class PollsService {
           let imageUrl = item.imageUrl;
           if (imageUrl && !imageUrl.startsWith('http')) {
             imageUrl = `https://trendankara.com${imageUrl}`;
-            console.log('🖼️ Poll image URL transformed:', { original: item.imageUrl, transformed: imageUrl });
+            if (__DEV__) {
+              console.log('Poll image URL transformed:', { original: item.imageUrl, transformed: imageUrl });
+            }
           } else if (imageUrl) {
-            console.log('🖼️ Poll image URL (already absolute):', imageUrl);
+            if (__DEV__) {
+              console.log('Poll image URL (already absolute):', imageUrl);
+            }
           }
 
           return {

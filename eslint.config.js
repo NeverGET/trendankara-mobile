@@ -7,4 +7,9 @@ module.exports = defineConfig([
   {
     ignores: ['dist/*'],
   },
+  {
+    rules: {
+      'no-console': ['error', { allow: ['warn', 'error'] }],
+    },
+  },
 ]);

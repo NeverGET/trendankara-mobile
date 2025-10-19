@@ -6,7 +6,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import apiClient, { handleApiResponse, handleApiError } from '../api/client';
 import { SETTINGS_ENDPOINTS } from '../api/endpoints';
-import type { MobileSettings, SettingsResponse } from '@/types/api';
+import type { MobileSettings, SettingsResponse, ApiResponse } from '@/types/api';
 
 class SettingsService {
   private static instance: SettingsService;
@@ -55,23 +55,14 @@ class SettingsService {
    */
   private async _fetchSettingsInternal(): Promise<MobileSettings> {
     try {
-      // For development, use default settings if API is not available
-      if (__DEV__) {
-        console.log('Using default settings for development');
-        const defaults = this.getDefaultSettings();
-        this.settings = defaults;
-        await this.cacheSettings(defaults);
-        this.notifyListeners();
-        return defaults;
-      }
-
       console.log('Fetching settings from API...');
-      const response = await apiClient.get<SettingsResponse>(
-        SETTINGS_ENDPOINTS.GET_SETTINGS
+      const response = await apiClient.get<ApiResponse<MobileSettings>>(
+        SETTINGS_ENDPOINTS.GET_CONFIG
       );
 
-      if (response.data?.settings) {
-        this.settings = response.data.settings;
+      // API returns { success: true, data: MobileSettings }
+      if (response.data?.success && response.data?.data) {
+        this.settings = response.data.data;
         await this.cacheSettings(this.settings);
         this.notifyListeners();
         console.log('Settings fetched and cached successfully');

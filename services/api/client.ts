@@ -19,14 +19,15 @@ const API_CONFIG = {
   USE_MOCK: false,
 };
 
-// Log the configuration
-console.log('🚀 Initializing API Client with config:', {
-  BASE_URL: API_CONFIG.BASE_URL,
-  TIMEOUT: API_CONFIG.TIMEOUT,
-  Platform: Platform.OS,
-  AppVersion: Constants.expoConfig?.version || '1.0.0',
-  DeviceName: Device.deviceName || 'unknown',
-});
+if (__DEV__) {
+  console.log('Initializing API Client with config:', {
+    BASE_URL: API_CONFIG.BASE_URL,
+    TIMEOUT: API_CONFIG.TIMEOUT,
+    Platform: Platform.OS,
+    AppVersion: Constants.expoConfig?.version || '1.0.0',
+    DeviceName: Device.deviceName || 'unknown',
+  });
+}
 
 // Create axios instance
 const apiClient: AxiosInstance = axios.create({
@@ -52,25 +53,23 @@ apiClient.interceptors.request.use(
       };
     }
 
-    const fullUrl = `${config.baseURL}${config.url}`;
-    console.log('═══════════════════════════════════════');
-    console.log(`📤 API Request: ${config.method?.toUpperCase()} ${fullUrl}`);
-    console.log(`📋 Headers:`, JSON.stringify(config.headers, null, 2));
-    console.log(`🔗 Base URL: ${config.baseURL}`);
-    console.log(`🎯 Endpoint: ${config.url}`);
-    console.log(`⏱️ Timeout: ${config.timeout}ms`);
-    if (config.params) {
-      console.log(`📦 Params:`, JSON.stringify(config.params, null, 2));
+    if (__DEV__) {
+      const fullUrl = `${config.baseURL}${config.url}`;
+      console.log('API Request:', config.method?.toUpperCase(), fullUrl);
+      console.log('Headers:', JSON.stringify(config.headers, null, 2));
+      console.log('Base URL:', config.baseURL);
+      console.log('Endpoint:', config.url);
+      console.log('Timeout:', config.timeout + 'ms');
+      if (config.params) {
+        console.log('Params:', JSON.stringify(config.params, null, 2));
+      }
     }
-    console.log('═══════════════════════════════════════');
 
     return config;
   },
   (error: AxiosError) => {
-    console.error('═══════════════════════════════════════');
-    console.error('❌ API Request Setup Error:', error.message);
+    console.error('API Request Setup Error:', error.message);
     console.error('Stack:', error.stack);
-    console.error('═══════════════════════════════════════');
     return Promise.reject(error);
   }
 );
@@ -91,12 +90,11 @@ apiClient.interceptors.response.use(
 
     // Handle network errors
     if (!error.response) {
-      console.error('═══════════════════════════════════════');
-      console.error('🔴 NETWORK ERROR DETAILS:');
-      console.error(`📱 Error Message: ${error.message}`);
-      console.error(`🌐 Error Code: ${error.code}`);
-      console.error(`🔗 URL Attempted: ${originalRequest?.baseURL}${originalRequest?.url}`);
-      console.error(`⚠️ Request Config:`, {
+      console.error('NETWORK ERROR DETAILS:');
+      console.error('Error Message:', error.message);
+      console.error('Error Code:', error.code);
+      console.error('URL Attempted:', `${originalRequest?.baseURL}${originalRequest?.url}`);
+      console.error('Request Config:', {
         method: originalRequest?.method,
         baseURL: originalRequest?.baseURL,
         url: originalRequest?.url,
@@ -104,26 +102,26 @@ apiClient.interceptors.response.use(
       });
 
       if (error.code === 'ECONNABORTED') {
-        console.error('⏱️ Request timed out!');
+        console.error('Request timed out');
       } else if (error.code === 'ERR_NETWORK') {
-        console.error('🌐 Network connection failed!');
+        console.error('Network connection failed');
       } else if (error.message.includes('SSL')) {
-        console.error('🔒 SSL/TLS error detected!');
+        console.error('SSL/TLS error detected');
       }
 
-      // Log the full error object
-      console.error('📊 Full Error Object:', JSON.stringify({
-        message: error.message,
-        code: error.code,
-        name: error.name,
-        stack: error.stack?.split('\n').slice(0, 5),
-        config: {
-          url: originalRequest?.url,
-          baseURL: originalRequest?.baseURL,
-          method: originalRequest?.method,
-        }
-      }, null, 2));
-      console.error('═══════════════════════════════════════');
+      if (__DEV__) {
+        console.error('Full Error Object:', JSON.stringify({
+          message: error.message,
+          code: error.code,
+          name: error.name,
+          stack: error.stack?.split('\n').slice(0, 5),
+          config: {
+            url: originalRequest?.url,
+            baseURL: originalRequest?.baseURL,
+            method: originalRequest?.method,
+          }
+        }, null, 2));
+      }
 
       // Implement retry logic for network errors
       if (!originalRequest._retry || originalRequest._retry < API_CONFIG.RETRY_ATTEMPTS) {
@@ -132,7 +130,9 @@ apiClient.interceptors.response.use(
         // Exponential backoff
         const delay = API_CONFIG.RETRY_DELAY * Math.pow(2, originalRequest._retry - 1);
 
-        console.log(`🔄 Retrying request (${originalRequest._retry}/${API_CONFIG.RETRY_ATTEMPTS}) after ${delay}ms`);
+        if (__DEV__) {
+          console.log(`Retrying request (${originalRequest._retry}/${API_CONFIG.RETRY_ATTEMPTS}) after ${delay}ms`);
+        }
 
         await new Promise(resolve => setTimeout(resolve, delay));
         return apiClient.request(originalRequest);

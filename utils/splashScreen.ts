@@ -43,7 +43,9 @@ class SplashScreenService {
     try {
       // Prevent splash screen from auto-hiding
       await SplashScreen.preventAutoHideAsync();
-      console.log('💦 Splash screen initialized');
+      if (__DEV__) {
+        console.log('Splash screen initialized');
+      }
 
       // Set up minimum display time timer
       if (this.config.minimumDisplayTime) {
@@ -81,8 +83,10 @@ class SplashScreenService {
   async hideSplashScreen() {
     try {
       await SplashScreen.hideAsync();
-      const totalTime = Date.now() - this.startTime;
-      console.log(`💦 Splash screen hidden after ${totalTime}ms`);
+      if (__DEV__) {
+        const totalTime = Date.now() - this.startTime;
+        console.log(`Splash screen hidden after ${totalTime}ms`);
+      }
     } catch (error) {
       console.error('Failed to hide splash screen:', error);
     }
@@ -257,9 +261,9 @@ export const preloadCriticalResources = async () => {
 
   try {
     await Promise.all(tasks);
-    console.log('✅ Critical resources preloaded');
+    if (__DEV__) { console.log('Critical resources preloaded'); }
   } catch (error) {
-    console.error('❌ Error preloading resources:', error);
+    console.error('Error preloading resources:', error);
     // Don't throw - allow app to continue
   }
 };

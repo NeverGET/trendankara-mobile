@@ -11,7 +11,6 @@ import { cardsService } from './cards';
 import configApi from './config';
 import { AppState, AppStateStatus } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
-import { testApiConnection } from './testConnection';
 
 interface InitializationResult {
   success: boolean;
@@ -49,11 +48,6 @@ class ApiInitializationService {
     }
 
     console.log('Starting API initialization...');
-
-    // Run connection test in development
-    if (__DEV__) {
-      await testApiConnection();
-    }
 
     // Critical endpoints to preload
     const endpoints = [

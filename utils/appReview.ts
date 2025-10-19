@@ -80,7 +80,7 @@ class AppReviewService {
       await this.recordLaunch();
 
       this.isInitialized = true;
-      console.log('📱 App Review Service initialized');
+      if (__DEV__) { console.log('App Review Service initialized'); }
     } catch (error) {
       console.error('Failed to initialize App Review Service:', error);
     }
@@ -113,7 +113,7 @@ class AppReviewService {
       await this.saveEvent(event);
 
       if (__DEV__) {
-        console.log(`📊 Review event recorded: ${eventName} (weight: ${weight})`);
+        if (__DEV__) { console.log(`Review event recorded: ${eventName} (weight: ${weight})`);
       }
     } catch (error) {
       console.error('Failed to record review event:', error);
@@ -233,7 +233,7 @@ class AppReviewService {
       stats.promptCount += 1;
       await this.saveUsageStats(stats);
 
-      console.log('📱 Review prompt shown');
+      if (__DEV__) { console.log('Review prompt shown'); }
       return true;
     } catch (error) {
       console.error('Failed to show review prompt:', error);
@@ -249,7 +249,7 @@ class AppReviewService {
       const stats = await this.getUsageStats();
       stats.hasRatedCurrentVersion = true;
       await this.saveUsageStats(stats);
-      console.log('✅ User marked as having rated the app');
+      if (__DEV__) { console.log('User marked as having rated the app'); }
     } catch (error) {
       console.error('Failed to mark as rated:', error);
     }
@@ -264,7 +264,7 @@ class AppReviewService {
       stats.hasDeclinedReview = true;
       stats.lastDeclineDate = new Date().toISOString();
       await this.saveUsageStats(stats);
-      console.log('❌ User marked as having declined review');
+      if (__DEV__) { console.log('User marked as having declined review'); }
     } catch (error) {
       console.error('Failed to mark as declined:', error);
     }
@@ -286,7 +286,7 @@ class AppReviewService {
         STORAGE_KEYS.USAGE_STATS,
         STORAGE_KEYS.EVENTS,
       ]);
-      console.log('🗑️ App review data reset');
+      if (__DEV__) { console.log('App review data reset'); }
     } catch (error) {
       console.error('Failed to reset app review data:', error);
     }

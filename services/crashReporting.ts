@@ -90,7 +90,7 @@ class CrashReportingService {
 
     // Don't initialize in development unless explicitly enabled
     if (__DEV__ && !this.config.enableInDevEnvironment) {
-      console.log('🐛 Crash reporting disabled in development');
+      console.log('Crash reporting disabled in development');
       return;
     }
 
@@ -104,7 +104,9 @@ class CrashReportingService {
       this.isInitialized = true;
       this.addBreadcrumb('Crash reporting initialized', 'info', 'system');
 
-      console.log('🚨 Crash reporting initialized');
+      if (__DEV__) {
+        console.log('Crash reporting initialized');
+      }
     } catch (error) {
       console.error('Failed to initialize crash reporting:', error);
     }
@@ -157,7 +159,7 @@ class CrashReportingService {
     }
 
     if (__DEV__) {
-      console.log(`🍞 Breadcrumb [${level}]: ${message}`, data);
+      console.log(`Breadcrumb [${level}]: ${message}`, data);
     }
   }
 
@@ -266,7 +268,7 @@ class CrashReportingService {
       // });
 
       if (__DEV__) {
-        console.group('🚨 Crash Report');
+        console.group('Crash Report');
         console.error('Error:', crashReport.error);
         console.log('Context:', crashReport.context);
         console.log('Device:', crashReport.device);

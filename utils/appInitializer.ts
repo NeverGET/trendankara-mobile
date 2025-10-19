@@ -42,13 +42,17 @@ class AppInitializer {
    */
   async initialize(config: Partial<AppInitConfig> = {}): Promise<void> {
     if (this.isInitialized) {
-      console.log('🚀 App already initialized');
+      if (__DEV__) {
+        console.log('App already initialized');
+      }
       return;
     }
 
     this.config = { ...DEFAULT_CONFIG, ...config };
 
-    console.log('🚀 Initializing TrendAnkara Mobile App...');
+    if (__DEV__) {
+      console.log('Initializing TrendAnkara Mobile App...');
+    }
 
     try {
       // Initialize splash screen first
@@ -65,7 +69,9 @@ class AppInitializer {
       await this.initializeAdditionalServices();
 
       this.isInitialized = true;
-      console.log('✅ App initialization completed successfully');
+      if (__DEV__) {
+        console.log('App initialization completed successfully');
+      }
 
       // Record successful initialization
       if (this.config.enableAppReview) {
@@ -73,7 +79,7 @@ class AppInitializer {
       }
 
     } catch (error) {
-      console.error('❌ App initialization failed:', error);
+      console.error('App initialization failed:', error);
 
       // Report initialization error
       if (this.config.enableCrashReporting) {
@@ -99,7 +105,7 @@ class AppInitializer {
         minimumDisplayTime: this.config.splashScreenMinTime,
         enableAutoHide: true,
       });
-      console.log('💦 Splash screen initialized');
+      if (__DEV__) { console.log('Splash screen initialized'); }
     } catch (error) {
       console.error('Failed to initialize splash screen:', error);
     }
@@ -117,7 +123,7 @@ class AppInitializer {
         enableRenderTracking: true,
         enableNetworkTracking: true,
       });
-      console.log('📊 Performance monitoring initialized');
+      if (__DEV__) { console.log('Performance monitoring initialized'); }
     } catch (error) {
       console.error('Failed to initialize performance monitoring:', error);
     }
@@ -137,7 +143,7 @@ class AppInitializer {
         enableNativeCrashHandling: true,
         maxBreadcrumbs: 100,
       });
-      console.log('🚨 Crash reporting initialized');
+      if (__DEV__) { console.log('Crash reporting initialized'); }
     } catch (error) {
       console.error('Failed to initialize crash reporting:', error);
     }
@@ -190,7 +196,7 @@ class AppInitializer {
   async markAppReady(): Promise<void> {
     try {
       splashScreenService.setAppReady();
-      console.log('✅ App marked as ready');
+      if (__DEV__) { console.log('App marked as ready'); }
     } catch (error) {
       console.error('Failed to mark app as ready:', error);
     }

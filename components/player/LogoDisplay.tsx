@@ -56,18 +56,29 @@ export function LogoDisplay({ size, style }: LogoDisplayProps) {
     );
   }
 
+  // Crop 30% from top and bottom to remove transparent padding
+  // Container is rectangular: full width, 70% height
+  const containerHeight = logoSize * 0.7;
+
   return (
-    <View style={[styles.container, style]}>
+    <View
+      style={[
+        styles.cropContainer,
+        style,
+        {
+          width: logoSize,
+          height: containerHeight,
+        }
+      ]}
+    >
       <Image
         source={require('@/assets/images/Trendankara3.png')}
-        style={[
-          styles.logo,
-          {
-            width: logoSize,
-            height: logoSize,
-          }
-        ]}
-        contentFit="contain"
+        style={{
+          width: '100%',
+          height: '100%',
+        }}
+        contentFit="cover" // Fills container width, crops top/bottom
+        contentPosition="center" // Centers image for equal top/bottom crop
         onError={handleImageError}
         placeholder={null}
         transition={200}
@@ -80,6 +91,11 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  cropContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden', // Crop the image top and bottom
   },
   logo: {
     // Ensures the logo maintains aspect ratio

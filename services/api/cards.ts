@@ -27,10 +27,12 @@ class CardsApiService {
         : `https://trendankara.com${card.imageUrl}`)
       : null;
 
-    console.log('🔄 Cards API - Transform:', {
-      original: originalUrl,
-      transformed: imageUrl
-    });
+    if (__DEV__) {
+      console.log('Cards API - Transform:', {
+        original: originalUrl,
+        transformed: imageUrl
+      });
+    }
 
     return {
       ...card,

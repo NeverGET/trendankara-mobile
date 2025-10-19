@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, ScrollView, View, Image, Alert } from 'react-native';
+import { StyleSheet, View, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { AnimatedLogoContainer } from '@/components/player/AnimatedLogoContainer';
 import { AnimationErrorBoundary } from '@/components/player/AnimationErrorBoundary';
 import RadioPlayerControls from '@/components/radio/RadioPlayerControls';
-import SocialMediaButtons from '@/components/social/SocialMediaButtons';
+import { PlayerContactSection } from '@/components/social/PlayerContactSection';
 import { useSettings, useMaintenanceMode } from '@/hooks/useSettings';
 import { radioApi } from '@/services/api/radio';
 
 export default function RadioScreen() {
-  const { playerLogo, loading: settingsLoading } = useSettings();
+  const { loading: settingsLoading } = useSettings();
   const { isMaintenanceMode } = useMaintenanceMode();
   const [streamUrl, setStreamUrl] = useState<string>('');
   const [radioConfig, setRadioConfig] = useState<any>(null);
@@ -76,24 +76,14 @@ export default function RadioScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <ThemedView style={styles.container}>
+      <ThemedView style={styles.container}>
         {/* Logo Section */}
         <AnimationErrorBoundary>
-          {playerLogo ? (
-            <View style={styles.logoContainer}>
-              <Image
-                source={{ uri: playerLogo }}
-                style={styles.logoImage}
-                resizeMode="contain"
-              />
-            </View>
-          ) : (
-            <AnimatedLogoContainer
-              isPlaying={isPlaying}
-              style={styles.logoContainer}
-            />
-          )}
+          <AnimatedLogoContainer
+            isPlaying={isPlaying}
+            logoSize={240}
+            style={styles.logoContainer}
+          />
         </AnimationErrorBoundary>
 
         {/* Player Controls */}
@@ -110,11 +100,7 @@ export default function RadioScreen() {
         )}
 
         {/* Social Media Links */}
-        <View style={styles.socialSection}>
-          <ThemedText style={styles.sectionTitle}>Bizi Takip Edin</ThemedText>
-          <SocialMediaButtons style={styles.socialButtons} />
-        </View>
-
+        <PlayerContactSection style={styles.socialSection} />
 
         {/* Maintenance Mode Banner */}
         {isMaintenanceMode && (
@@ -125,37 +111,25 @@ export default function RadioScreen() {
           </View>
         )}
       </ThemedView>
-    </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollView: {
-    flex: 1,
-  },
   container: {
     flex: 1,
     alignItems: 'center',
-    paddingTop: 40,
-    paddingBottom: 40,
+    paddingTop: 20,
+    paddingBottom: 10,
     paddingHorizontal: 20,
   },
   logoContainer: {
-    marginBottom: 20,
-    width: 324,  // 180% of 180 = 324
-    height: 182,  // 16:9 aspect ratio (324 / 16 * 9 = 182.25)
-    overflow: 'visible',  // Allow spotlight effects to show outside bounds
+    marginBottom: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  logoImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'contain',  // Preserve aspect ratio
-  },
   playerControls: {
-    marginVertical: 30,
+    marginVertical: 15,
     width: '100%',
   },
   loadingText: {
@@ -164,17 +138,7 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
   socialSection: {
-    marginTop: 40,
-    alignItems: 'center',
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 20,
-  },
-  socialButtons: {
-    marginTop: 10,
+    marginTop: 20,
   },
   maintenanceBanner: {
     position: 'absolute',

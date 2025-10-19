@@ -1,0 +1,16 @@
+# Baseline Measurements for Log Cleanup Code Removal
+# Date: 2025-10-19
+
+## Console Statement Counts
+Total console statements (all types): 597
+Console.error and console.warn statements: 237
+
+## NFR-REL-001 Verification Baseline
+Target range for console.error/warn after cleanup: 213-261 (±10% of 237)
+
+## Purpose
+These measurements establish the baseline for verification:
+- Total console statements should decrease significantly after cleanup
+- Console.error/warn should remain within ±10% of baseline (237)
+- Any decrease beyond -10% indicates necessary error logging was removed
+- Any increase beyond +10% indicates new error logging was added inadvertently
