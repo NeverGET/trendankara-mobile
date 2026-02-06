@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Linking, StyleSheet, StyleProp, ViewStyle } from 'react-native';
+import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
@@ -109,11 +109,11 @@ export const SocialMediaSection: React.FC<SocialMediaSectionProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 12,
+    marginBottom: 16,
     alignItems: 'center',
   },
   title: {
-    marginBottom: 12,
+    marginBottom: 10,
   },
   buttonsContainer: {
     flexDirection: 'row',

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { StyleSheet, Alert, AppState, View } from 'react-native';
+import { StyleSheet, Alert, AppState, View, ScrollView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
@@ -223,7 +223,7 @@ export default function RadioScreen() {
   if (settingsLoading) {
     return (
       <SafeAreaView style={[styles.safeArea, { backgroundColor }]} edges={['top', 'left', 'right']}>
-        <ThemedView style={styles.container}>
+        <ThemedView style={styles.loadingContainer}>
           <ThemedText>Yükleniyor...</ThemedText>
         </ThemedView>
       </SafeAreaView>
@@ -231,8 +231,17 @@ export default function RadioScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor }]} edges={['top', 'left', 'right']}>
-      <ThemedView style={styles.container}>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor }]}
+      edges={['top', 'left', 'right']}
+    >
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        alwaysBounceVertical={false}
+        bounces={Platform.OS === 'ios'}
+      >
         {/* Logo Section */}
         <AnimationErrorBoundary>
           <AnimatedLogoContainer
@@ -255,6 +264,9 @@ export default function RadioScreen() {
           <ThemedText style={styles.loadingText}>Yayın yükleniyor...</ThemedText>
         )}
 
+        {/* Spacer to push social buttons down */}
+        <ThemedView style={styles.spacer} />
+
         {/* Social Media Links */}
         <PlayerContactSection style={styles.socialSection} />
 
@@ -266,7 +278,7 @@ export default function RadioScreen() {
             </ThemedText>
           </View>
         )}
-      </ThemedView>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -275,20 +287,28 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  container: {
+  loadingContainer: {
     flex: 1,
     alignItems: 'center',
-    paddingTop: 20,
+    justifyContent: 'center',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    alignItems: 'center',
+    paddingTop: 0,
     paddingBottom: 10,
     paddingHorizontal: 20,
   },
   logoContainer: {
-    marginBottom: 10,
+    marginBottom: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
   playerControls: {
-    marginVertical: 15,
+    marginVertical: 16,
     width: '100%',
   },
   loadingText: {
@@ -296,8 +316,12 @@ const styles = StyleSheet.create({
     color: '#666',
     marginVertical: 20,
   },
+  spacer: {
+    flex: 1,
+  },
   socialSection: {
-    marginTop: 20,
+    marginTop: 8,
+    marginBottom: 16,
   },
   maintenanceBanner: {
     position: 'absolute',

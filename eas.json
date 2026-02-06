@@ -45,8 +45,7 @@
       },
       "android": {
         "resourceClass": "medium",
-        "buildType": "apk",
-        "gradleCommand": ":app:assembleRelease",
+        "buildType": "app-bundle",
         "autoIncrement": true
       },
       "autoIncrement": true,
@@ -64,7 +63,7 @@
       },
       "android": {
         "serviceAccountKeyPath": "./credentials/google-play-service-account.json",
-        "track": "internal"
+        "track": "alpha"
       }
     }
   }

@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, Platform, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -11,6 +12,11 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const insets = useSafeAreaInsets();
+
+  // On Android with 3-button navigation, bottom inset accounts for the nav bar height.
+  // Add it as padding so the tab bar is not hidden behind the system navigation buttons.
+  const tabBarPaddingBottom = Platform.OS === 'android' ? insets.bottom : 0;
 
   return (
     <Tabs
@@ -22,7 +28,8 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: Colors[colorScheme ?? 'light'].background,
           borderTopColor: Colors[colorScheme ?? 'light'].border,
-          height: 70, // Increased height to accommodate larger radio icon
+          height: 70 + tabBarPaddingBottom,
+          paddingBottom: tabBarPaddingBottom,
         },
       }}>
       {/* Polls - Left */}

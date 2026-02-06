@@ -115,8 +115,10 @@ export function AnimatedLogoContainer({
   const animatedContainerStyle = useAnimatedStyle(() => {
     return {
       // Container adapts to logo size changes
+      // Reduced multiplier to save vertical space (was 1.2, now 0.85)
+      // This matches the logo's cropped height more closely (logo is 0.7 of original)
       minWidth: animatedLogoSize.value * 1.2,
-      minHeight: animatedLogoSize.value * 1.2,
+      minHeight: animatedLogoSize.value * 0.85,
     };
   });
 

@@ -106,11 +106,11 @@ export const RequestLineSection: React.FC<RequestLineSectionProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 12,
+    marginBottom: 16,
     alignItems: 'center',
   },
   title: {
-    marginBottom: 12,
+    marginBottom: 10,
   },
   buttonsContainer: {
     flexDirection: 'row',
