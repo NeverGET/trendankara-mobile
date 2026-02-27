@@ -10,9 +10,8 @@ import * as Device from 'expo-device';
 import type { ApiResponse } from '@/types/api';
 
 // API Configuration
-// Using Google Cloud Function proxy to bypass SSL issues
 const API_CONFIG = {
-  BASE_URL: 'https://europe-west3-kapitel-h.cloudfunctions.net/trendankara-proxy/api/mobile/v1',
+  BASE_URL: 'https://trendankara.com/api/mobile/v1',
   TIMEOUT: 30000, // 30 seconds
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000, // 1 second base delay

@@ -1,34 +1,13 @@
 /**
- * Image Proxy Utility
- * Handles image URL transformation to use GCP media proxy when needed
+ * Image URL Utility
+ * SSL is now handled directly via Let's Encrypt — no proxy needed
  */
 
-const PROXY_BASE_URL = 'https://europe-west3-kapitel-h.cloudfunctions.net/trendankara-media-proxy';
-
 /**
- * Check if an image URL should use the proxy
- * Returns true if the URL is from the main server (trendankara.com) which may have SSL issues
- */
-function shouldUseProxy(imageUrl: string): boolean {
-  if (!imageUrl) return false;
-
-  // Use proxy for trendankara.com images to bypass SSL issues
-  return imageUrl.includes('trendankara.com');
-}
-
-/**
- * Transform image URL to use the media proxy
+ * Returns the image URL directly (proxy removed, SSL fixed on server)
  */
 export function getProxiedImageUrl(originalUrl: string | null | undefined): string | null {
   if (!originalUrl) return null;
-
-  // If the URL should use proxy, transform it
-  if (shouldUseProxy(originalUrl)) {
-    const encodedUrl = encodeURIComponent(originalUrl);
-    return `${PROXY_BASE_URL}?url=${encodedUrl}`;
-  }
-
-  // Return original URL for external images
   return originalUrl;
 }
 

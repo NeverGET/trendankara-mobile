@@ -41,7 +41,7 @@ export const BACKGROUND_CONFIG: BackgroundConfig = {
 } as const;
 
 export const AudioConfig = {
-  STREAM_URL: 'http://stream.live.vc.bbcmedia.co.uk/bbc_world_service', // Test fallback stream
+  STREAM_URL: 'https://radyo.yayin.com.tr:5132/stream', // Fallback stream
 
   // Audio Mode Settings
   AUDIO_MODE: {

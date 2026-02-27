@@ -4,18 +4,12 @@
  */
 
 // Base URLs
-// Using deployed Google Cloud Function proxy to bypass SSL issues
-const PROXY_BASE_URL = process.env.EXPO_PUBLIC_PROXY_URL ||
-  'https://europe-west3-kapitel-h.cloudfunctions.net/trendankara-proxy';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://trendankara.com';
 
 export const API_BASE = {
-  MOBILE: `${PROXY_BASE_URL}/api/mobile/v1`,
-  ADMIN: `${PROXY_BASE_URL}/api/admin`,
-  MEDIA: `${PROXY_BASE_URL}/api/media`,
-  // Original endpoints (kept for reference/fallback)
-  ORIGINAL_MOBILE: 'https://trendankara.com/api/mobile/v1',
-  ORIGINAL_ADMIN: 'https://trendankara.com/api/admin',
-  ORIGINAL_MEDIA: 'https://trendankara.com/api/media',
+  MOBILE: `${API_BASE_URL}/api/mobile/v1`,
+  ADMIN: `${API_BASE_URL}/api/admin`,
+  MEDIA: `${API_BASE_URL}/api/media`,
 } as const;
 
 // Mobile Settings

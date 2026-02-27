@@ -23,7 +23,7 @@ export interface RadioConfigResponse {
 
 // Hardcoded fallback configuration
 const FALLBACK_RADIO_CONFIG: RadioConfig = {
-  stream_url: 'http://stream.live.vc.bbcmedia.co.uk/bbc_world_service', // Test fallback stream
+  stream_url: 'https://radyo.yayin.com.tr:5132/stream',
   station_name: 'Trend Ankara Radyo',
   connection_status: 'active',
   last_tested: new Date().toISOString(),
